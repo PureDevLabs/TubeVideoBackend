@@ -40,6 +40,14 @@ routes/api.php
 routes/web.php
 ```
 
+run after update
+
+```bash
+php artisan clear-compiled 
+composer dump-autoload
+php artisan optimize
+```
+
 ### v3.1.2
 Added:
 - Added a function to bypass YouTube ip bans by refreshing IPv6 addresses all 2 hours. Requires a /64 IPv6 Subnet and it MUST be configured on your Server. 
@@ -76,30 +84,6 @@ lib/BackendApp.php
 - Added DMCA function in Admin Panel to Block videos. 
 - added related videos to search api
 
-#### Updated files
-> app/Http/Controllers/ApiController.php <br>
-> app/Http/Livewire/UrlBlacklist.php <br>
-> app/Models/BlacklistUrl.php <br>
-> app/Models/Extractor.php <br>
-> database/migrations/2023_03_11_005440_create_extractors_table.php <br>
-> database/migrations/2023_03_12_230403_create_blacklist_urls_table.php <br>
-> database/seeders/DatabaseSeeder.php <br>
-> database/seeders/ExtractorSeeder.php <br>
-> lib/BackendApp.php <br>
-> lib/DMCA.php <br>
-> lib/Extractors/Extractor.php <br>
-> lib/Extractors/Facebook.php <br>
-> lib/Extractors/Instagram.php <br>
-> lib/Extractors/Tiktok.php <br>
-> lib/Extractors/Twitter.php <br>
-> lib/Extractors/YoutubeData.php <br>
-> lib/Extractors/YoutubeSearch.php <br>
-> resources/views/admin/url-blacklist.blade.php <br>
-> resources/views/livewire/url-blacklist.blade.php <br>
-> resources/views/navigation-menu.blade.php <br>
-> routes/api.php <br>
-> routes/web.php <br>
-
 ### v3.0.2
 
 - fixed Instagram, Soundcloud
@@ -107,42 +91,4 @@ lib/BackendApp.php
 - minor bug fixes
 - added Docker support (Experimental)
 
-#### Updated files
-> .env.example <br>
->  app/Http/Controllers/ApiController.php <br>
->  app/Http/Livewire/ApiManagement.php <br>
->  app/Http/Livewire/InstagramCookie.php (✨ New ✨) <br>
->  app/Install/Checker.php (✨ New ✨) <br>
->  app/Install/Installer.php (✨ New ✨) <br>
->  app/Providers/RouteServiceProvider.php <br>
->  composer.json <br>
->  config/database.php <br>
->  deploy_docker.sh (✨ New ✨) <br>
->  docker-compose.single.yml (✨ New ✨) <br>
->  docker-compose.standalone.yml (✨ New ✨) <br>
->  docker-compose.yml <br>
->  docker/8.1-prod/.gitignore (✨ New ✨) <br>
->  docker/8.1-prod/Dockerfile (✨ New ✨) <br>
->  docker/8.1-prod/php/php.ini (✨ New ✨) <br>
->  lib/Core.php <br>
->  lib/Extractors/Extractor.php <br>
->  lib/Extractors/Instagram.php <br> 
->  lib/Extractors/SoundCloud.php <br>
->  lib/Extractors/Twitch.php (✨ New ✨) <br>
->  lib/Extractors/Youtube.php <br>
->  lib/Extractors/YoutubeSearch.php <br>
->  lib/HttpClient.php (✨ New ✨) <br>
->  lib/Misc.php (✨ New ✨) <br>
->  lib/ProxyDownload.php (✨ New ✨) <br>
->  public/css/app.css <br>
->  public/js/app.js <br>
->  public/mix-manifest.json <br>
->  resources/views/admin/cookie-management.blade.php (✨ New ✨) <br>
->  resources/views/installer/check.blade.php (✨ New ✨) <br>
->  resources/views/installer/index.blade.php (✨ New ✨) <br>
->  resources/views/livewire/instagram-cookie.blade.php (✨ New ✨) <br>
->  resources/views/livewire/manage-key.blade.php <br>
->  resources/views/navigation-menu.blade.php <br>
->  routes/api.php <br>
->  routes/installer.php (✨ New ✨) <br>
->  routes/web.php <br>
+
