@@ -43,10 +43,11 @@ routes/web.php
 run after update
 
 ```bash
-php artisan clear-compiled 
+php artisan optimize:clear
 composer dump-autoload
-php artisan optimize
 ```
+
+---
 
 ### v3.1.2
 Added:
