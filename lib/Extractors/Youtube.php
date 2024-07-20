@@ -23,8 +23,10 @@ class Youtube extends Extractor
     );
     const _CAPTCHA_PATTERN = '/^((<form)(.+?)(das_captcha)(.+?)(<\/form>))$/msi';
     const _SAPISID_PATTERN = '/SAPISID\s*=\s*(.+?)\;/s';
+    const _MAX_UNPLAYABLE_TRIES = 10;
 
     protected $Parser;
+    protected $_unplayableTries = 0;
 
     public function __construct()
     {
@@ -138,15 +140,32 @@ class Youtube extends Extractor
                 $androidUserAgent = 'Mozilla/5.0 (Linux; Android 12; SAMSUNG SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/16.0 Chrome/92.0.4515.166 Mobile Safari/537.36';
                 $response = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(4)->withUserAgent($androidUserAgent)->withHeaders($this->GeneratePostRequestHeaders())->post('https://www.youtube.com/youtubei/v1/player', $postData);
 
-                if ($response->status() == 200)
+                $json = json_decode($response, true);
+                if (json_last_error() == JSON_ERROR_NONE)
                 {
-                    return $response->body();
-                }
-                else
-                {
-                    $json = json_decode($response, true);
-
-                    if (json_last_error() == JSON_ERROR_NONE)
+                    if ($response->status() == 200)
+                    {
+                        $status = $json['playabilityStatus'] ?? null;
+                        if (!is_null($status) && isset($status['status'], $status['reason']) && $status['status'] == 'UNPLAYABLE' && preg_match('/limit/', $status['reason']) == 1)
+                        {
+                            if ($this->_unplayableTries < self::_MAX_UNPLAYABLE_TRIES)
+                            {
+                                $this->_unplayableTries++;
+                                return $this->GetYouTubeVideoData($vid);
+                            }
+                            else
+                            {
+                                return array(
+                                    'error' => true,
+                                    'httpCode' => $response->status(),
+                                    'errorMessage' => $status['reason'],
+                                    'errorCode' => $status['status']
+                                );
+                            }
+                        }
+                        return $response->body();
+                    }
+                    else
                     {
                         if (strpos($json['error']['message'], 'API key not valid. Please pass a valid API key.') !== false)
                         {

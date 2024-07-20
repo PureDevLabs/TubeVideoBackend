@@ -210,34 +210,48 @@ class YoutubeData extends Youtube
 			try
 			{
 				$response = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(4)->withHeaders($reqHeaders)->post(constant("self::_" . strtoupper($resultType) . "_API_ROOT"), $postData);
-				if ($response->status() == 200)
-				{
-					$json = json_decode($response->body(), true);
-					if (json_last_error() == JSON_ERROR_NONE)
-					{
-						return $json;
-					}
-				}
-				else
-				{
-					$json = json_decode($response->body(), true);
-					if (json_last_error() == JSON_ERROR_NONE)
-					{
-						if (strpos($json['error']['message'], 'API key not valid. Please pass a valid API key.') !== false)
-						{
-							return $this->UpdateSoftware();
-						}
-						else
-						{
-							return array(
-								'error' => true,
-								'httpCode' => $response->status(),
-								'errorMessage' => $json['error']['message'],
-								'errorCode' => $json['error']['code']
-							);
-						}
-					}
-				}
+                $json = json_decode($response->body(), true);
+                if (json_last_error() == JSON_ERROR_NONE)
+                {
+                    if ($response->status() == 200)
+                    {
+                        $status = $json['playabilityStatus'] ?? null;
+                        if (!is_null($status) && isset($status['status'], $status['reason']) && $status['status'] == 'UNPLAYABLE' && preg_match('/limit/', $status['reason']) == 1)
+                        {
+                            if ($this->_unplayableTries < parent::_MAX_UNPLAYABLE_TRIES)
+                            {
+                                $this->_unplayableTries++;
+                                return $this->GetYouTubeData($resultType, $term, $nextPageToken);
+                            }
+                            else
+                            {
+                                return array(
+                                    'error' => true,
+                                    'httpCode' => $response->status(),
+                                    'errorMessage' => $status['reason'],
+                                    'errorCode' => $status['status']
+                                );
+                            }
+                        }
+                        return $json;
+                    }
+                    else
+                    {
+                        if (strpos($json['error']['message'], 'API key not valid. Please pass a valid API key.') !== false)
+                        {
+                            return $this->UpdateSoftware();
+                        }
+                        else
+                        {
+                            return array(
+                                'error' => true,
+                                'httpCode' => $response->status(),
+                                'errorMessage' => $json['error']['message'],
+                                'errorCode' => $json['error']['code']
+                            );
+                        }
+                    }
+                }
 			}
 			catch (\Throwable $th)
 			{
