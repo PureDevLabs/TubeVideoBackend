@@ -6,6 +6,7 @@ use PureDevLabs\Utils;
 use PureDevLabs\Parser;
 use Illuminate\Support\Facades\Http;
 use PureDevLabs\Extractors\Extractor;
+use Illuminate\Support\Facades\Cache;
 
 class Youtube extends Extractor
 {
@@ -29,7 +30,7 @@ class Youtube extends Extractor
     {
         $this->Parser = new Parser();
     }
-    
+
     public function GetDownloadLinks($url)
     {
         $id = $this->ExtractVideoId($url);
@@ -183,22 +184,38 @@ class Youtube extends Extractor
         if (!isset($data['error']))
         {
             $postHeaders = array();
+            $origin = 'https://www.youtube.com';
+            $timestamp = time();
             if (preg_match(self::_SAPISID_PATTERN, $data['reqParams']['cookie'], $matches) == 1)
             {
-                $origin = 'https://www.youtube.com';
-                $timestamp = time();
                 $hash = sha1($timestamp . ' ' . $matches[1] . ' ' . $origin);
                 $sapihash = 'SAPISIDHASH ' . $timestamp . '_' . $hash;
-                $postHeaders = array(
-                    'Content-Type' => 'application/json',
-                    'X-Goog-Api-Key' => $data['reqParams']['apiKey'],
-                    'Cookie' => $data['reqParams']['cookie'],
-                    'Authorization' => $sapihash,
-                    'x-origin' => $origin
-                );
             }
+            $postHeaders = array(
+                'Content-Type' => 'application/json',
+                'X-Goog-Api-Key' => $data['reqParams']['apiKey'],
+                'Cookie' => $data['reqParams']['cookie'],
+                'Authorization' => $sapihash ?? $this->GenerateOAuthToken(),
+                'x-origin' => $origin
+            );
             return $postHeaders;
         }
         return $data;
+    }
+
+    private function GenerateOAuthToken()
+    {
+        $token = "";
+        $tokens = Cache::get('oauth:tokens', '');
+        if (!empty($tokens))
+        {
+            $tokens = json_decode($tokens, true);
+            if (isset($tokens[0]['access_token']))
+            {
+                $randomToken = mt_rand(0, count($tokens) - 1);
+                $token = $tokens[$randomToken]['access_token'];
+            }
+        }
+        return $token;
     }
 }
