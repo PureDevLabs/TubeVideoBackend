@@ -70,14 +70,16 @@
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="ml-4">
-                                                    <div class="text-sm font-medium text-gray-900">
-                                                        {{ $item->access_token }}
+                                                    <div class="text-sm font-medium text-gray-900" title="{{ $item->access_token }}">
+                                                        {{ (strlen($item->access_token) > 40) ? substr($item->access_token, 0, 40) . "..." : $item->access_token }}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900"> {{ $item->refresh_token }}</div>
+                                            <div class="text-sm text-gray-900" title="{{ $item->refresh_token }}">
+                                                {{ (strlen($item->refresh_token) > 40) ? substr($item->refresh_token, 0, 40) . "..." : $item->refresh_token }}
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900"> {{ date('Y-m-d H:i:s', (int)$item->expiry_time) }}</div>
