@@ -7,6 +7,7 @@ use PureDevLabs\Parser;
 use Illuminate\Support\Facades\Http;
 use PureDevLabs\Extractors\Extractor;
 use Illuminate\Support\Facades\Cache;
+use App\Models\OauthToken;
 
 class Youtube extends Extractor
 {
@@ -88,11 +89,11 @@ class Youtube extends Extractor
                 }
                 else
                 {
-                    return ($json['playabilityStatus']['status'] == 'LOGIN_REQUIRED') ? $this->UpdateSoftware() : [
+                    return [
                         'error' => true,
                         'httpCode' => 200,
                         'errorMessage' => $json['playabilityStatus']['reason'] ?? "Unknown reason",
-                        'errorCode' => $json['playabilityStatus']['status']
+                        'errorCode' => $json['playabilityStatus']['status'] ?? "Unknown status"
                     ];
                 }
             }
@@ -225,7 +226,10 @@ class Youtube extends Extractor
     private function GenerateOAuthToken()
     {
         $token = "";
-        $tokens = Cache::get('oauth:tokens', '');
+        $tokens = Cache::rememberForever('oauth:tokens', function() {
+            $tokenss = OauthToken::all();
+            return json_encode($tokenss->toArray());
+        });
         if (!empty($tokens))
         {
             $tokens = json_decode($tokens, true);
