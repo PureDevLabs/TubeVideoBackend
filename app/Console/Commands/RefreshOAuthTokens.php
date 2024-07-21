@@ -47,7 +47,7 @@ class RefreshOAuthTokens extends Command
      */
     public function handle()
     {
-        $tokens = OauthToken::all();
+        $tokens = OauthToken::all()->toArray();
         $now = time();
         $updatedTokens = [];
 
@@ -61,10 +61,7 @@ class RefreshOAuthTokens extends Command
                     'refresh_token' => $token['refresh_token'],
                     'grant_type' => 'refresh_token'
                 ];
-                $response = Http::withUserAgent(self::_USERAGENT)->withHeaders([
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                    '__youtube_oauth__' => true
-                ])->post('https://oauth2.googleapis.com/token', $postData);
+                $response = Http::asForm()->withUserAgent(self::_USERAGENT)->post('https://oauth2.googleapis.com/token', $postData);
                 if ($response->status() == 200)
                 {
                     $json = json_decode($response, true);
