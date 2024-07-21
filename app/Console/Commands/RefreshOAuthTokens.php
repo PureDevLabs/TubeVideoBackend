@@ -89,15 +89,19 @@ class RefreshOAuthTokens extends Command
             $tokens = OauthToken::all();
             Cache::put('oauth:tokens', json_encode($tokens->toArray()));
 
+            $this->line('[' . date('Y-m-d H:i:s') . ']');
             $this->line('The following Access Tokens were refreshed:');
             $this->table(
                 ['Old Access Token', 'New Access Token'],
                 $updatedTokens
             );
+            $this->newLine();
         }
         else
         {
+            $this->line('[' . date('Y-m-d H:i:s') . ']');
             $this->line('No Access Tokens were refreshed.');
+            $this->newLine();
         }
 
         return 0;
