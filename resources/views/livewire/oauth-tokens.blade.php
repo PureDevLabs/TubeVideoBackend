@@ -57,7 +57,11 @@
                                     </th>
                                     <th scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Expiration Date/Time
+                                        Expires On
+                                    </th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Last Refresh
                                     </th>
                                     <th scope="col" class="relative px-6 py-3 text-right">
                                         Action&nbsp;&nbsp;&nbsp;&nbsp;
@@ -66,23 +70,31 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach ($data as $item)
-                                    <tr>
+                                    <tr{!! ((int)$item->expiry_time < time()) ? " style='background-color:#ffe7e6'" : "" !!}>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="ml-4">
                                                     <div class="text-sm font-medium text-gray-900" title="{{ $item->access_token }}">
-                                                        {{ (strlen($item->access_token) > 40) ? substr($item->access_token, 0, 40) . "..." : $item->access_token }}
+                                                        {{ (strlen($item->access_token) > 30) ? substr($item->access_token, 0, 30) . "..." : $item->access_token }}
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900" title="{{ $item->refresh_token }}">
-                                                {{ (strlen($item->refresh_token) > 40) ? substr($item->refresh_token, 0, 40) . "..." : $item->refresh_token }}
+                                                {{ (strlen($item->refresh_token) > 30) ? substr($item->refresh_token, 0, 30) . "..." : $item->refresh_token }}
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900"> {{ date('Y-m-d H:i:s', (int)$item->expiry_time) }}</div>
+                                            <div class="text-sm text-gray-900">
+                                                {{ date('Y-m-d H:i:s', (int)$item->expiry_time) }}
+                                                @if ((int)$item->expiry_time < time())
+                                                    <span style="color:red"><sup><b>EXPIRED!</b></sup></span>
+                                                @endif
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900"> {{ date('Y-m-d H:i:s', strtotime($item->updated_at)) }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <x-jet-danger-button wire:click="deleteToken({{ $item->id }})" onclick="confirm('Are you sure you want to remove this Token?') || event.stopImmediatePropagation()">

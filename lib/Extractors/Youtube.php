@@ -177,7 +177,7 @@ class Youtube extends Extractor
                             return array(
                                 'error' => true,
                                 'httpCode' => $response->status(),
-                                'errorMessage' => $json['error']['message'],
+                                'errorMessage' => (preg_match('/authentication/i', $json['error']['message']) == 1) ? "Authentication failure" : $json['error']['message'],
                                 'errorCode' => $json['error']['code']
                             );
                         }
@@ -198,7 +198,7 @@ class Youtube extends Extractor
         return $postDataReq;
     }
 
-    public function GeneratePostRequestHeaders()
+    public function GeneratePostRequestHeaders($reqType=null)
     {
         $data = $this->GetSoftwareJsonData();
         if (!isset($data['error']))
@@ -211,11 +211,12 @@ class Youtube extends Extractor
                 $hash = sha1($timestamp . ' ' . $matches[1] . ' ' . $origin);
                 $sapihash = 'SAPISIDHASH ' . $timestamp . '_' . $hash;
             }
+            $auth = $sapihash ?? (is_null($reqType) ? $this->GenerateOAuthToken() : '');
             $postHeaders = array(
                 'Content-Type' => 'application/json',
                 'X-Goog-Api-Key' => $data['reqParams']['apiKey'],
                 'Cookie' => $data['reqParams']['cookie'],
-                'Authorization' => $sapihash ?? $this->GenerateOAuthToken(),
+                'Authorization' => $auth,
                 'x-origin' => $origin
             );
             return $postHeaders;

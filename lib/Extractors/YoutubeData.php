@@ -180,7 +180,7 @@ class YoutubeData extends Youtube
 			$data = json_decode($softwareJson, true);
 			if (json_last_error() == JSON_ERROR_NONE)
 			{
-				$reqHeaders = $this->GeneratePostRequestHeaders();
+				$reqHeaders = $this->GeneratePostRequestHeaders($resultType);
 				$postData = [
 					'context' => [
 						'client' => [
@@ -215,24 +215,6 @@ class YoutubeData extends Youtube
                 {
                     if ($response->status() == 200)
                     {
-                        $status = $json['playabilityStatus'] ?? null;
-                        if (!is_null($status) && isset($status['status'], $status['reason']) && $status['status'] == 'UNPLAYABLE' && preg_match('/limit/', $status['reason']) == 1)
-                        {
-                            if ($this->_unplayableTries < parent::_MAX_UNPLAYABLE_TRIES)
-                            {
-                                $this->_unplayableTries++;
-                                return $this->GetYouTubeData($resultType, $term, $nextPageToken);
-                            }
-                            else
-                            {
-                                return array(
-                                    'error' => true,
-                                    'httpCode' => $response->status(),
-                                    'errorMessage' => $status['reason'],
-                                    'errorCode' => $status['status']
-                                );
-                            }
-                        }
                         return $json;
                     }
                     else
