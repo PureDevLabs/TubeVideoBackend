@@ -63,8 +63,8 @@
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Last Refresh
                                     </th>
-                                    <th scope="col" class="relative px-6 py-3 text-right">
-                                        Action&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <th scope="col" class="relative px-6 py-3 text-center">
+                                        Action
                                     </th>
                                 </tr>
                             </thead>
@@ -82,7 +82,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900" title="{{ $item->refresh_token }}">
-                                                {{ (strlen($item->refresh_token) > 30) ? substr($item->refresh_token, 0, 30) . "..." : $item->refresh_token }}
+                                                {{ (strlen($item->refresh_token) > 20) ? substr($item->refresh_token, 0, 20) . "..." : $item->refresh_token }}
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -97,9 +97,28 @@
                                             <div class="text-sm text-gray-900"> {{ date('Y-m-d H:i:s', strtotime($item->updated_at)) }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <x-jet-secondary-button wire:click="testToken({{ $item->id }})" onclick="confirm('Test a YouTube Video API request with this token?') || event.stopImmediatePropagation()">
+                                                {{ __('Test') }}
+                                            </x-jet-button>
                                             <x-jet-danger-button wire:click="deleteToken({{ $item->id }})" onclick="confirm('Are you sure you want to remove this Token?') || event.stopImmediatePropagation()">
                                                 {{ __('Delete') }}
                                             </x-jet-button>
+
+                                            <x-jet-dialog-modal wire:model="showModal">
+                                                <x-slot name="title">
+                                                    <p class="text-left">{{ __('Test Token') }}</p>
+                                                </x-slot>
+
+                                                <x-slot name="content">
+                                                    <pre class="text-left">{{ $testContent }}</pre>
+                                                </x-slot>
+
+                                                <x-slot name="footer">
+                                                    <x-jet-button wire:click="closeModal">
+                                                        {{ __('Close') }}
+                                                    </x-jet-button>
+                                                </x-slot>
+                                            </x-jet-dialog-modal>
                                         </td>
                                     </tr>
                                 @endforeach

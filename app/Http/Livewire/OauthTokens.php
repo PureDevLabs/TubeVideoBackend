@@ -5,9 +5,12 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Models\OauthToken;
 use Illuminate\Support\Facades\Cache;
+use PureDevLabs\Extractors\Youtube;
 
 class OauthTokens extends Component
 {
+    public $testContent = '';
+    public $showModal = false;
     public $state = [];
     protected $rules = [
         'state.accessToken' => 'required',
@@ -56,6 +59,20 @@ class OauthTokens extends Component
         OauthToken::destroy($id);
         $tokens = OauthToken::all();
         Cache::put('oauth:tokens', json_encode($tokens->toArray()));
+    }
+
+    public function testToken($id)
+    {
+        $token = OauthToken::find($id);
+        $youtube = new Youtube();
+        $testOutput = $youtube->TestPlayerApiRequest("HMpmI2F2cMs", $token['access_token']);
+        $this->testContent = json_encode($testOutput, JSON_PRETTY_PRINT);
+        $this->showModal = true;
+    }
+
+    public function closeModal()
+    {
+        $this->showModal = false;
     }
 
     public function render()

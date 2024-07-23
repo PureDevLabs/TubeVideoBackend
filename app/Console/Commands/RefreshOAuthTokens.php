@@ -62,10 +62,11 @@ class RefreshOAuthTokens extends Command
                     'grant_type' => 'refresh_token'
                 ];
                 $response = Http::asForm()->withUserAgent(self::_USERAGENT)->post('https://oauth2.googleapis.com/token', $postData);
-                if ($response->status() == 200)
+                $json = json_decode($response, true);
+                if (json_last_error() == JSON_ERROR_NONE)
                 {
-                    $json = json_decode($response, true);
-                    if (isset($json['access_token'], $json['expires_in']))
+                    $success = $response->status() == 200 && isset($json['access_token'], $json['expires_in']);
+                    if ($success)
                     {
                         $newToken = OauthToken::find($token['id']);
                         $newToken->access_token = "Bearer " . $json['access_token'];
@@ -75,6 +76,16 @@ class RefreshOAuthTokens extends Command
                             'old_token' => $token['access_token'],
                             'new_token' => $json['access_token']
                         ];
+                    }
+                    if (env('APP_DEBUG', false))
+                    {
+                        ($success) ? $this->info('DEBUG: Token Refresh Success!') : $this->error('DEBUG: Token Refresh Error!');
+                        $accessToken = ($success) ? $json['access_token'] : $token['access_token'];
+                        $this->comment('DEBUG: Access token: (' . $token['id'] . ') ' . substr($accessToken, 0, 30) . '...');
+                        $this->comment('DEBUG: Response code: ' . $response->status());
+                        $this->comment('DEBUG: Response body:');
+                        $this->comment(print_r($json, true));
+                        $this->newLine();
                     }
                 }
                 sleep(self::_SLEEP_TIME);
