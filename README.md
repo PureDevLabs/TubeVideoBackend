@@ -2,6 +2,36 @@
 
 ## Changelog:
 
+### v3.2.1
+- Added OAuth login capability for YouTube requests 
+- See https://github.com/PureDevLabs/TubeVideoBackend/discussions/8
+
+#### Updated files
+```
+README.md
+app/Console/Commands/RefreshOAuthTokens.php
+app/Console/Kernel.php
+app/Http/Livewire/OauthTokens.php
+app/Models/OauthToken.php
+database/migrations/2024_07_19_062641_create_oauth_tokens_table.php
+lib/BackendApp.php
+lib/Extractors/Youtube.php
+lib/Extractors/YoutubeData.php
+resources/views/admin/oauth-management.blade.php
+resources/views/livewire/oauth-tokens.blade.php
+resources/views/navigation-menu.blade.php
+routes/web.php
+```
+
+run after update
+
+```bash
+php artisan migrate
+php artisan optimize:clear
+```
+
+---
+
 ### v3.2.0
 - Rebranded
 - Removed Licensing
