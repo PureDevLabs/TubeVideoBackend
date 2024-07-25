@@ -6,6 +6,8 @@ use PureDevLabs\Utils;
 use PureDevLabs\Parser;
 use Illuminate\Support\Facades\Http;
 use PureDevLabs\Extractors\Extractor;
+use Illuminate\Support\Facades\Cache;
+use App\Models\OauthToken;
 
 class Youtube extends Extractor
 {
@@ -22,22 +24,22 @@ class Youtube extends Extractor
     );
     const _CAPTCHA_PATTERN = '/^((<form)(.+?)(das_captcha)(.+?)(<\/form>))$/msi';
     const _SAPISID_PATTERN = '/SAPISID\s*=\s*(.+?)\;/s';
+    const _MAX_UNPLAYABLE_TRIES = 10;
 
     protected $Parser;
+    protected $_unplayableTries = 0;
 
     public function __construct()
     {
         $this->Parser = new Parser();
     }
-    
+
     public function GetDownloadLinks($url)
     {
         $id = $this->ExtractVideoId($url);
         $data = $this->ParseDownloadLinks($id);
         return $data;
     }
-
-    # Private Methods
 
     private function ParseDownloadLinks($vid)
     {
@@ -85,11 +87,11 @@ class Youtube extends Extractor
                 }
                 else
                 {
-                    return ($json['playabilityStatus']['status'] == 'LOGIN_REQUIRED') ? $this->UpdateSoftware() : [
+                    return [
                         'error' => true,
                         'httpCode' => 200,
                         'errorMessage' => $json['playabilityStatus']['reason'] ?? "Unknown reason",
-                        'errorCode' => $json['playabilityStatus']['status']
+                        'errorCode' => $json['playabilityStatus']['status'] ?? "Unknown status"
                     ];
                 }
             }
@@ -137,15 +139,32 @@ class Youtube extends Extractor
                 $androidUserAgent = 'Mozilla/5.0 (Linux; Android 12; SAMSUNG SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/16.0 Chrome/92.0.4515.166 Mobile Safari/537.36';
                 $response = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(4)->withUserAgent($androidUserAgent)->withHeaders($this->GeneratePostRequestHeaders())->post('https://www.youtube.com/youtubei/v1/player', $postData);
 
-                if ($response->status() == 200)
+                $json = json_decode($response, true);
+                if (json_last_error() == JSON_ERROR_NONE)
                 {
-                    return $response->body();
-                }
-                else
-                {
-                    $json = json_decode($response, true);
-
-                    if (json_last_error() == JSON_ERROR_NONE)
+                    if ($response->status() == 200)
+                    {
+                        $status = $json['playabilityStatus'] ?? null;
+                        if (!is_null($status) && isset($status['status'], $status['reason']) && $status['status'] == 'UNPLAYABLE' && preg_match('/limit/', $status['reason']) == 1)
+                        {
+                            if ($this->_unplayableTries < self::_MAX_UNPLAYABLE_TRIES)
+                            {
+                                $this->_unplayableTries++;
+                                return $this->GetYouTubeVideoData($vid);
+                            }
+                            else
+                            {
+                                return array(
+                                    'error' => true,
+                                    'httpCode' => $response->status(),
+                                    'errorMessage' => $status['reason'],
+                                    'errorCode' => $status['status']
+                                );
+                            }
+                        }
+                        return $response->body();
+                    }
+                    else
                     {
                         if (strpos($json['error']['message'], 'API key not valid. Please pass a valid API key.') !== false)
                         {
@@ -156,7 +175,7 @@ class Youtube extends Extractor
                             return array(
                                 'error' => true,
                                 'httpCode' => $response->status(),
-                                'errorMessage' => $json['error']['message'],
+                                'errorMessage' => (preg_match('/authentication/i', $json['error']['message']) == 1) ? "Authentication failure" : $json['error']['message'],
                                 'errorCode' => $json['error']['code']
                             );
                         }
@@ -177,28 +196,96 @@ class Youtube extends Extractor
         return $postDataReq;
     }
 
-    public function GeneratePostRequestHeaders()
+    public function GeneratePostRequestHeaders($reqType=null)
     {
         $data = $this->GetSoftwareJsonData();
         if (!isset($data['error']))
         {
             $postHeaders = array();
+            $origin = 'https://www.youtube.com';
+            $timestamp = time();
             if (preg_match(self::_SAPISID_PATTERN, $data['reqParams']['cookie'], $matches) == 1)
             {
-                $origin = 'https://www.youtube.com';
-                $timestamp = time();
                 $hash = sha1($timestamp . ' ' . $matches[1] . ' ' . $origin);
                 $sapihash = 'SAPISIDHASH ' . $timestamp . '_' . $hash;
-                $postHeaders = array(
-                    'Content-Type' => 'application/json',
-                    'X-Goog-Api-Key' => $data['reqParams']['apiKey'],
-                    'Cookie' => $data['reqParams']['cookie'],
-                    'Authorization' => $sapihash,
-                    'x-origin' => $origin
-                );
             }
+            $auth = $sapihash ?? (is_null($reqType) ? $this->GenerateOAuthToken() : '');
+            $postHeaders = array(
+                'Content-Type' => 'application/json',
+                'X-Goog-Api-Key' => $data['reqParams']['apiKey'],
+                'Cookie' => $data['reqParams']['cookie'],
+                'Authorization' => $auth,
+                'x-origin' => $origin
+            );
             return $postHeaders;
         }
         return $data;
+    }
+
+    private function GenerateOAuthToken()
+    {
+        $token = "";
+        $tokens = Cache::rememberForever('oauth:tokens', function() {
+            $tokenss = OauthToken::all();
+            return json_encode($tokenss->toArray());
+        });
+        if (!empty($tokens))
+        {
+            $tokens = json_decode($tokens, true);
+            if (isset($tokens[0]['access_token']))
+            {
+                $randomToken = mt_rand(0, count($tokens) - 1);
+                $token = $tokens[$randomToken]['access_token'];
+            }
+        }
+        return $token;
+    }
+
+    public function TestPlayerApiRequest($vid, $token="")
+    {
+        $output = [];
+        $data = $this->GetSoftwareJsonData();
+        if (!isset($data['error']))
+        {
+            $origin = 'https://www.youtube.com';
+            $timestamp = time();
+            if (preg_match(self::_SAPISID_PATTERN, $data['reqParams']['cookie'], $matches) == 1)
+            {
+                $hash = sha1($timestamp . ' ' . $matches[1] . ' ' . $origin);
+                $sapihash = 'SAPISIDHASH ' . $timestamp . '_' . $hash;
+            }
+            $postHeaders = array(
+                'Content-Type' => 'application/json',
+                'X-Goog-Api-Key' => $data['reqParams']['apiKey'],
+                'Cookie' => $data['reqParams']['cookie'],
+                'Authorization' => $sapihash ?? $token,
+                'x-origin' => $origin
+            );
+            $postData = array(
+                'context' => array(
+                    'client' => array(
+                        'clientName' => (isset($data['reqParams']['androidParams']['clientName'])) ? $data['reqParams']['androidParams']['clientName'] : 'ANDROID',
+                        'clientVersion' => (isset($data['reqParams']['androidParams']['clientVersion'])) ? $data['reqParams']['androidParams']['clientVersion'] : '16.20'
+                    )
+                ),
+                'videoId' => $vid,
+                'contentCheckOk' => true,
+                'racyCheckOk' => true
+            );
+
+            $androidUserAgent = 'Mozilla/5.0 (Linux; Android 12; SAMSUNG SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/16.0 Chrome/92.0.4515.166 Mobile Safari/537.36';
+            $response = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(4)->withUserAgent($androidUserAgent)->withHeaders($postHeaders)->post('https://www.youtube.com/youtubei/v1/player', $postData);
+
+            $output['responseCode'] = $response->status();
+            $json = json_decode($response, true);
+            if (json_last_error() == JSON_ERROR_NONE)
+            {
+                $output['status'] = $json['playabilityStatus']['status'] ?? 'No status available';
+                $output['statusReason'] = $json['playabilityStatus']['reason'] ?? 'No status reason available';
+                $output['errorCode'] = $json['error']['code'] ?? 'No error code';
+                $output['errorMessage'] = $json['error']['message'] ?? 'No error message';
+            }
+        }
+        return $output;
     }
 }

@@ -50,6 +50,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function ()
             return view('admin.cookie-management');
         })->name('cookies');
 
+        Route::get('/oauth', function ()
+        {
+            return view('admin.oauth-management');
+        })->name('oauth');
+
         Route::get('/dmca', function ()
         {
             return view('admin.url-blacklist');

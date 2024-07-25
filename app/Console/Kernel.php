@@ -29,6 +29,7 @@ class Kernel extends ConsoleKernel
             $schedule->command('generate:newIPv6')->withoutOverlapping()->everyTwoHours();
             $schedule->command('cache:clear')->withoutOverlapping()->everyTwoHours();
         }
+        $schedule->command('refresh:OAuthTokens')->withoutOverlapping()->everyFiveMinutes()->appendOutputTo(storage_path() . "/logs/refresh-oauth-tokens.log");
     }
 
     /**

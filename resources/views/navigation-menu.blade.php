@@ -21,6 +21,9 @@
                     <x-jet-nav-link href="{{ route('apimanagement') }}" :active="request()->routeIs('apimanagement')">
                         {{ __('Api Management') }}
                     </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('oauth') }}" :active="request()->routeIs('oauth')">
+                        {{ __('OAuth Management') }}
+                    </x-jet-nav-link>
                     <x-jet-nav-link href="{{ route('cookies') }}" :active="request()->routeIs('cookies')">
                         {{ __('Cookie Management') }}
                     </x-jet-nav-link>
