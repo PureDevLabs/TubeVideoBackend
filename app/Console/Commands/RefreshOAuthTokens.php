@@ -94,7 +94,7 @@ class RefreshOAuthTokens extends Command
 
         if (!empty($updatedTokens))
         {
-            $tokens = OauthToken::all();
+            $tokens = OauthToken::where('enabled', 1)->get();
             Cache::put('oauth:tokens', json_encode($tokens->toArray()));
 
             $this->line('[' . date('Y-m-d H:i:s') . ']');

@@ -226,7 +226,7 @@ class Youtube extends Extractor
     {
         $token = "";
         $tokens = Cache::rememberForever('oauth:tokens', function() {
-            $tokenss = OauthToken::all();
+            $tokenss = OauthToken::where('enabled', 1)->get();
             return json_encode($tokenss->toArray());
         });
         if (!empty($tokens))
