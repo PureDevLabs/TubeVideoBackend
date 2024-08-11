@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use PureDevLabs\Extractors\Extractor;
 use Illuminate\Support\Facades\Cache;
 use App\Models\OauthToken;
+use AuthSettings;
 
 class Youtube extends Extractor
 {
@@ -120,24 +121,41 @@ class Youtube extends Extractor
 
     private function GetYouTubeVideoData($vid)
     {
+        $authMethod = app(AuthSettings::class)->method;
         $postDataReq = $this->GetSoftwareJsonData();
         if (!isset($postDataReq['error']))
         {
-            $postData = array(
-                'context' => array(
-                    'client' => array(
-                        'clientName' => (isset($postDataReq['reqParams']['androidParams']['clientName'])) ? $postDataReq['reqParams']['androidParams']['clientName'] : 'ANDROID',
-                        'clientVersion' => (isset($postDataReq['reqParams']['androidParams']['clientVersion'])) ? $postDataReq['reqParams']['androidParams']['clientVersion'] : '16.20'
-                    )
-                ),
+            $userAgent = 'Mozilla/5.0 (Linux; Android 12; SAMSUNG SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/16.0 Chrome/92.0.4515.166 Mobile Safari/537.36';
+            $postData = [
+                'context' => [
+                    'client' => [
+                        'clientName' => $postDataReq['reqParams']['androidParams']['clientName'] ?? 'ANDROID',
+                        'clientVersion' => $postDataReq['reqParams']['androidParams']['clientVersion'] ?? '16.20'
+                    ]
+                ],
                 'videoId' => $vid,
                 'contentCheckOk' => true,
                 'racyCheckOk' => true
-            );
+            ];
+            if ($authMethod == "session")
+            {
+                $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36,gzip(gfe)';
+                $postData['context']['client'] = [
+                    'clientName' => $postDataReq['reqParams']['webParams']['clientName'] ?? 'WEB',
+                    'clientVersion' => $postDataReq['reqParams']['webParams']['clientVersion'] ?? '2.20240726.00.00',
+                    "visitorData" => Cache::get('trustedSession:visitorData', ''),
+                    "userAgent" => $userAgent
+                ];
+                $postData['context']['user'] = [
+                    'lockedSafetyMode' => false
+                ];
+                $postData['serviceIntegrityDimensions'] = [
+                    "poToken" => Cache::get('trustedSession:poToken', '')
+                ];
+            }
             try
             {
-                $androidUserAgent = 'Mozilla/5.0 (Linux; Android 12; SAMSUNG SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/16.0 Chrome/92.0.4515.166 Mobile Safari/537.36';
-                $response = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(4)->withUserAgent($androidUserAgent)->withHeaders($this->GeneratePostRequestHeaders())->post('https://www.youtube.com/youtubei/v1/player', $postData);
+                $response = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(4)->withUserAgent($userAgent)->withHeaders($this->GeneratePostRequestHeaders())->post('https://www.youtube.com/youtubei/v1/player', $postData);
 
                 $json = json_decode($response, true);
                 if (json_last_error() == JSON_ERROR_NONE)
@@ -198,6 +216,7 @@ class Youtube extends Extractor
 
     public function GeneratePostRequestHeaders($reqType=null)
     {
+        $authMethod = app(AuthSettings::class)->method;
         $data = $this->GetSoftwareJsonData();
         if (!isset($data['error']))
         {
@@ -209,7 +228,7 @@ class Youtube extends Extractor
                 $hash = sha1($timestamp . ' ' . $matches[1] . ' ' . $origin);
                 $sapihash = 'SAPISIDHASH ' . $timestamp . '_' . $hash;
             }
-            $auth = $sapihash ?? (is_null($reqType) ? $this->GenerateOAuthToken() : '');
+            $auth = $sapihash ?? ((is_null($reqType) && $authMethod == "oauth") ? $this->GenerateOAuthToken() : '');
             $postHeaders = array(
                 'Content-Type' => 'application/json',
                 'X-Goog-Api-Key' => $data['reqParams']['apiKey'],
