@@ -64,6 +64,16 @@ class Youtube extends Extractor
                     $itags = ['format' => $this->Parser->FormatedStreamsByItag(), 'audio' => $this->Parser->AudioStreamsByItag(), 'video' => $this->Parser->VideoStreamsByItag()];
                     foreach ($formatsCombined as $item)
                     {
+                        if (!isset($item['url']) && isset($item['signatureCipher']))
+                        {
+                            parse_str($item['signatureCipher'], $sigVars);
+                            if (isset($sigVars['url']))
+                            {
+                                $item['url'] = $sigVars['url'];
+                                unset($sigVars['url']);
+                                $item['url'] .= "&" . http_build_query($sigVars);
+                            }
+                        }
                         if (isset($item['itag'], $item['url']))
                         {
                             foreach ($itags as $catName => $itagGroup)
@@ -229,13 +239,18 @@ class Youtube extends Extractor
                 $sapihash = 'SAPISIDHASH ' . $timestamp . '_' . $hash;
             }
             $auth = $sapihash ?? ((is_null($reqType) && $authMethod == "oauth") ? $this->GenerateOAuthToken() : '');
-            $postHeaders = array(
+            $postHeaders = [
                 'Content-Type' => 'application/json',
-                'X-Goog-Api-Key' => $data['reqParams']['apiKey'],
-                'Cookie' => $data['reqParams']['cookie'],
-                'Authorization' => $auth,
                 'x-origin' => $origin
-            );
+            ];
+            if ($authMethod != "session")
+            {
+                $postHeaders += [
+                    'X-Goog-Api-Key' => $data['reqParams']['apiKey'],
+                    'Cookie' => $data['reqParams']['cookie'],
+                    'Authorization' => $auth
+                ];
+            }
             return $postHeaders;
         }
         return $data;
