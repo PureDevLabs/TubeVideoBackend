@@ -21,9 +21,11 @@
                     <x-jet-nav-link href="{{ route('apimanagement') }}" :active="request()->routeIs('apimanagement')">
                         {{ __('Api Management') }}
                     </x-jet-nav-link>
-                    <x-jet-nav-link href="{{ route('oauth') }}" :active="request()->routeIs('oauth')">
-                        {{ __('OAuth Management') }}
-                    </x-jet-nav-link>
+                    @if (app(AuthSettings::class)->method == "oauth")
+                        <x-jet-nav-link id="oauthNav" href="{{ route('oauth') }}" :active="request()->routeIs('oauth')">
+                            {{ __('OAuth Management') }}
+                        </x-jet-nav-link>
+                    @endif
                     <x-jet-nav-link href="{{ route('cookies') }}" :active="request()->routeIs('cookies')">
                         {{ __('Cookie Management') }}
                     </x-jet-nav-link>

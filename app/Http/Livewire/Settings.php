@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use LicenseSettings;
+use AuthSettings;
 use Livewire\Component;
 
 class Settings extends Component
@@ -13,8 +14,19 @@ class Settings extends Component
     {
         $this->state = [
             'productKey' => app(LicenseSettings::class)->productKey,
-            'localKey' => app(LicenseSettings::class)->localKey
+            'localKey' => app(LicenseSettings::class)->localKey,
+            'authMethod' => app(AuthSettings::class)->method
         ];
+    }
+
+    public function UpdateAuthMethod(AuthSettings $settings)
+    {
+        $settings->method = $this->state['authMethod'];
+
+        $settings->save();
+        $settings->refresh();
+
+        $this->emit('saved');
     }
 
     public function UpdateLicenseInformation(LicenseSettings $settings)
