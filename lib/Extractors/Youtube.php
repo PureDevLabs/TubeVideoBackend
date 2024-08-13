@@ -7,6 +7,7 @@ use PureDevLabs\Parser;
 use Illuminate\Support\Facades\Http;
 use PureDevLabs\Extractors\Extractor;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use App\Models\OauthToken;
 use AuthSettings;
 
@@ -26,13 +27,16 @@ class Youtube extends Extractor
     const _CAPTCHA_PATTERN = '/^((<form)(.+?)(das_captcha)(.+?)(<\/form>))$/msi';
     const _SAPISID_PATTERN = '/SAPISID\s*=\s*(.+?)\;/s';
     const _MAX_UNPLAYABLE_TRIES = 10;
+    const _BASE_JS = "YouTube/base.js";
 
     protected $Parser;
+    protected $_authMethod;
     protected $_unplayableTries = 0;
 
     public function __construct()
     {
         $this->Parser = new Parser();
+        $this->_authMethod = app(AuthSettings::class)->method;
     }
 
     public function GetDownloadLinks($url)
@@ -59,7 +63,7 @@ class Youtube extends Extractor
                     $formats = Utils::ArrayGet($json, 'streamingData.formats');
                     $adaptiveFormats = Utils::ArrayGet($json, 'streamingData.adaptiveFormats');
                     $videoDetails = Utils::ArrayGet($json, 'videoDetails');
-                    $formatsCombined = array_merge($formats, $adaptiveFormats);
+                    $formatsCombined = $this->DecodeNSig(array_merge($formats, $adaptiveFormats));
 
                     $itags = ['format' => $this->Parser->FormatedStreamsByItag(), 'audio' => $this->Parser->AudioStreamsByItag(), 'video' => $this->Parser->VideoStreamsByItag()];
                     foreach ($formatsCombined as $item)
@@ -129,9 +133,96 @@ class Youtube extends Extractor
         );
     }
 
+    private function DecodeNSig(array $formats)
+    {
+        $decodedFormats = $formats;
+        if ($this->_authMethod == "session")
+        {
+            $nsigs = [];
+            foreach ($formats as $format)
+            {
+                if (isset($format['signatureCipher']))
+                {
+                    parse_str($format['signatureCipher'], $sigVars);
+                    if (isset($sigVars['url']))
+                    {
+                        $url = urldecode($sigVars['url']);
+                        $urlParts = parse_url($url);
+                        parse_str($urlParts['query'], $urlVars);
+                        if (isset($urlVars['n']) && !isset($nsigs[$urlVars['n']]))
+                        {
+                            $nsigs[$urlVars['n']] = $format;
+                        }
+                    }
+                }
+            }
+            if (!empty($nsigs) && Storage::disk('local')->exists(self::_BASE_JS))
+            {
+                $basejsCode = Storage::disk('local')->get(self::_BASE_JS);
+                $nsigCode = (!empty($basejsCode)) ? $this->GenerateNSigCode($basejsCode) : '';
+                $nsigStr = implode(",", array_keys($nsigs));
+                if (!empty($nsigCode))
+                {
+                    exec("bun run " . resource_path('js/nsig.js') . " " . escapeshellarg($nsigCode) . " " . escapeshellarg($nsigStr), $bunResponse);
+                    $decodedNsigs = json_decode(implode("", $bunResponse), true);
+                    if (json_last_error() == JSON_ERROR_NONE && array_keys($decodedNsigs) == array_keys($nsigs))
+                    {
+                        foreach ($formats as $format)
+                        {
+                            if (isset($format['signatureCipher']))
+                            {
+                                parse_str($format['signatureCipher'], $sigVars);
+                                if (isset($sigVars['url']))
+                                {
+                                    $url = urldecode($sigVars['url']);
+                                    $urlParts = parse_url($url);
+                                    parse_str($urlParts['query'], $urlVars);
+                                    if (isset($urlVars['n'], $decodedNsigs[$urlVars['n']]))
+                                    {
+                                        $urlVars['n'] = $decodedNsigs[$urlVars['n']];
+                                        $sigVarsUrl = $urlParts['scheme'] . '://' . $urlParts['host'] . $urlParts['path'] . urlencode("?") . http_build_query($urlVars);
+                                        unset($sigVars['url']);
+                                        $format['signatureCipher'] = http_build_query($sigVars) . "&url=" . $sigVarsUrl;
+                                        $decodedFormats[] = $format;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return $decodedFormats;
+    }
+
+    private function GenerateNSigCode($basejsCode)
+    {
+        $playerJS = $basejsCode;
+        $nsigCode = '';
+        if (preg_match('/(?x)(?:\.get\("n"\)\)&&\(b=|(?:b=String\.fromCharCode\(110\)|(?P<str_idx>[a-zA-Z0-9_$.]+)&&\(b="nn"\[\+(?P=str_idx)\])(?:,[a-zA-Z0-9_$]+\(a\))?,c=a\.(?:get\(b\)|[a-zA-Z0-9_$]+\[b\]\|\|null)\)&&\(c=|\b(?P<var>[a-zA-Z0-9_$]+)=)(?P<nfunc>[a-zA-Z0-9_$]+)(?:\[(?P<idx>\d+)\])?\([a-zA-Z]\)(?(var),[a-zA-Z0-9_$]+\.set\("n"\,(?P=var)\),(?P=nfunc)\.length)/', $playerJS, $pmatch) == 1)
+        {
+            $fname = $pmatch['nfunc'];
+            $findex = $pmatch['idx'];
+            if (preg_match('/var ' . preg_quote($fname, "/") . '=\[([^\]]+)\];/', $playerJS, $pmatch2) == 1)
+            {
+                $funcs = explode(",", $pmatch2[1]);
+                if (isset($funcs[$findex]))
+                {
+                    $fname = $funcs[$findex];
+                    $fNamePattern = preg_quote($fname, "/");
+                    if (preg_match('/((function\s+' . $fNamePattern . ')|([\{;,]\s*' . $fNamePattern . '\s*=\s*function)|(var\s+' . $fNamePattern . '\s*=\s*function))\s*\(([^\)]*)\)\s*\{(.+?)\};\n/s', $playerJS, $nsigFunc) == 1)
+                    {
+                        //die("<pre>" . print_r($nsigFunc, true) . "</pre>");
+                        $nsigCode = $fname . ' = function(' . $nsigFunc[5] . '){' . $nsigFunc[6] . '}; nsigDecoded = ' . $fname . '(n);';
+                    }
+                }
+            }
+        }
+        return $nsigCode;
+    }
+
     private function GetYouTubeVideoData($vid)
     {
-        $authMethod = app(AuthSettings::class)->method;
         $postDataReq = $this->GetSoftwareJsonData();
         if (!isset($postDataReq['error']))
         {
@@ -147,7 +238,7 @@ class Youtube extends Extractor
                 'contentCheckOk' => true,
                 'racyCheckOk' => true
             ];
-            if ($authMethod == "session")
+            if ($this->_authMethod == "session")
             {
                 $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36,gzip(gfe)';
                 $postData['context']['client'] = [
@@ -226,7 +317,6 @@ class Youtube extends Extractor
 
     public function GeneratePostRequestHeaders($reqType=null)
     {
-        $authMethod = app(AuthSettings::class)->method;
         $data = $this->GetSoftwareJsonData();
         if (!isset($data['error']))
         {
@@ -238,12 +328,12 @@ class Youtube extends Extractor
                 $hash = sha1($timestamp . ' ' . $matches[1] . ' ' . $origin);
                 $sapihash = 'SAPISIDHASH ' . $timestamp . '_' . $hash;
             }
-            $auth = $sapihash ?? ((is_null($reqType) && $authMethod == "oauth") ? $this->GenerateOAuthToken() : '');
+            $auth = $sapihash ?? ((is_null($reqType) && $this->_authMethod == "oauth") ? $this->GenerateOAuthToken() : '');
             $postHeaders = [
                 'Content-Type' => 'application/json',
                 'x-origin' => $origin
             ];
-            if ($authMethod != "session")
+            if ($this->_authMethod != "session")
             {
                 $postHeaders += [
                     'X-Goog-Api-Key' => $data['reqParams']['apiKey'],

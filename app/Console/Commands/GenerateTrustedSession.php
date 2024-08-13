@@ -4,6 +4,9 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use PureDevLabs\Extractors\Youtube;
 
 class GenerateTrustedSession extends Command
 {
@@ -67,6 +70,9 @@ class GenerateTrustedSession extends Command
                     Cache::put('trustedSession:visitorData', $json['visitorData']);
                     Cache::put('trustedSession:poToken', $json['poToken']);
                     Cache::put('trustedSession:basejs', $json['basejs']);
+                    $response = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(4)->get($json['basejs']);
+                    $response = ($response->successful() && $response->status() == 200) ? $response->body() : '';
+                    Storage::disk('local')->put(Youtube::_BASE_JS, $response);
                     $this->info('Cached trusted session info!');
                 }
                 else
