@@ -10,8 +10,7 @@ if (process.argv[2] && process.argv[3])
 
     const nTransformScript = new vm.Script(nsigSource);
     nsigs.forEach((nsig, idx, arr) => {
-        let nsigDecoded = nsig;
-        nTransformScript.runInNewContext({ n: nsig, nsigDecoded: nsigDecoded });
+        let nsigDecoded = nTransformScript.runInNewContext({ n: nsig });
         nsigsDecoded[nsig] = nsigDecoded;
     })
 

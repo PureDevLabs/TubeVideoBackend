@@ -68,16 +68,8 @@ class Youtube extends Extractor
                     $itags = ['format' => $this->Parser->FormatedStreamsByItag(), 'audio' => $this->Parser->AudioStreamsByItag(), 'video' => $this->Parser->VideoStreamsByItag()];
                     foreach ($formatsCombined as $item)
                     {
-                        if (!isset($item['url']) && isset($item['signatureCipher']))
-                        {
-                            parse_str($item['signatureCipher'], $sigVars);
-                            if (isset($sigVars['url']))
-                            {
-                                $item['url'] = $sigVars['url'];
-                                unset($sigVars['url']);
-                                $item['url'] .= "&" . http_build_query($sigVars);
-                            }
-                        }
+                        $url = $this->ReturnDownloadFormatUrl($item);
+                        $item['url'] = (!empty($url)) ? $url : null;
                         if (isset($item['itag'], $item['url']))
                         {
                             foreach ($itags as $catName => $itagGroup)
@@ -113,6 +105,22 @@ class Youtube extends Extractor
         }
     }
 
+    private function ReturnDownloadFormatUrl(array $format)
+    {
+        $url = (isset($format['url'])) ? $format['url'] : '';
+        if (empty($url) && isset($format['signatureCipher']))
+        {
+            parse_str($format['signatureCipher'], $sigVars);
+            if (isset($sigVars['url']))
+            {
+                $url = $sigVars['url'];
+                unset($sigVars['url']);
+                $url .= "&" . urldecode(http_build_query($sigVars));
+            }
+        }
+        return $url;
+    }
+
     private function SortFormattedOutput(array $item)
     {
         $contentLength = $item['contentLength'] ?? '0';
@@ -141,18 +149,15 @@ class Youtube extends Extractor
             $nsigs = [];
             foreach ($formats as $format)
             {
-                if (isset($format['signatureCipher']))
+                $url = $this->ReturnDownloadFormatUrl($format);
+                if (!empty($url))
                 {
-                    parse_str($format['signatureCipher'], $sigVars);
-                    if (isset($sigVars['url']))
+                    $url = urldecode($url);
+                    $urlParts = parse_url($url);
+                    parse_str($urlParts['query'], $urlVars);
+                    if (isset($urlVars['n']) && !isset($nsigs[$urlVars['n']]))
                     {
-                        $url = urldecode($sigVars['url']);
-                        $urlParts = parse_url($url);
-                        parse_str($urlParts['query'], $urlVars);
-                        if (isset($urlVars['n']) && !isset($nsigs[$urlVars['n']]))
-                        {
-                            $nsigs[$urlVars['n']] = $format;
-                        }
+                        $nsigs[$urlVars['n']] = $format;
                     }
                 }
             }
@@ -169,22 +174,17 @@ class Youtube extends Extractor
                     {
                         foreach ($formats as $format)
                         {
-                            if (isset($format['signatureCipher']))
+                            $url = $this->ReturnDownloadFormatUrl($format);
+                            if (!empty($url))
                             {
-                                parse_str($format['signatureCipher'], $sigVars);
-                                if (isset($sigVars['url']))
+                                $url = urldecode($url);
+                                $urlParts = parse_url($url);
+                                parse_str($urlParts['query'], $urlVars);
+                                if (isset($urlVars['n'], $decodedNsigs[$urlVars['n']]))
                                 {
-                                    $url = urldecode($sigVars['url']);
-                                    $urlParts = parse_url($url);
-                                    parse_str($urlParts['query'], $urlVars);
-                                    if (isset($urlVars['n'], $decodedNsigs[$urlVars['n']]))
-                                    {
-                                        $urlVars['n'] = $decodedNsigs[$urlVars['n']];
-                                        $sigVarsUrl = $urlParts['scheme'] . '://' . $urlParts['host'] . $urlParts['path'] . urlencode("?") . http_build_query($urlVars);
-                                        unset($sigVars['url']);
-                                        $format['signatureCipher'] = http_build_query($sigVars) . "&url=" . $sigVarsUrl;
-                                        $decodedFormats[] = $format;
-                                    }
+                                    $urlVars['n'] = $decodedNsigs[$urlVars['n']];
+                                    $format['url'] = $urlParts['scheme'] . '://' . $urlParts['host'] . $urlParts['path'] . "?" . http_build_query($urlVars);
+                                    $decodedFormats[] = $format;
                                 }
                             }
                         }
