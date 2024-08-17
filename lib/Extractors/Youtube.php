@@ -143,7 +143,7 @@ class Youtube extends Extractor
 
     private function DecodeNSig(array $formats)
     {
-        $decodedFormats = $formats;
+        $decodedFormats = [];
         if ($this->_authMethod == "session")
         {
             $nsigs = [];
@@ -192,7 +192,7 @@ class Youtube extends Extractor
                 }
             }
         }
-        return $decodedFormats;
+        return (!empty($decodedFormats)) ? $decodedFormats : $formats;
     }
 
     private function GenerateNSigCode($basejsCode)
@@ -213,7 +213,7 @@ class Youtube extends Extractor
                     if (preg_match('/((function\s+' . $fNamePattern . ')|([\{;,]\s*' . $fNamePattern . '\s*=\s*function)|(var\s+' . $fNamePattern . '\s*=\s*function))\s*\(([^\)]*)\)\s*\{(.+?)\};\n/s', $playerJS, $nsigFunc) == 1)
                     {
                         //die("<pre>" . print_r($nsigFunc, true) . "</pre>");
-                        $nsigCode = $fname . ' = function(' . $nsigFunc[5] . '){' . $nsigFunc[6] . '}; nsigDecoded = ' . $fname . '(n);';
+                        $nsigCode = $fname . ' = function(' . $nsigFunc[5] . '){' . $nsigFunc[6] . '}; ' . $fname . '(n);';
                     }
                 }
             }
