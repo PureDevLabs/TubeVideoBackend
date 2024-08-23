@@ -2,6 +2,47 @@
 
 ## Changelog:
 
+### v3.2.2
+- Added ability to use a "Trusted Session" for authenticating YouTube requests 
+  - Choose your authentication method (Trusted Session or OAuth Tokens) in the admin section, at **Settings -> YouTube Authentication**
+  - Trusted Sessions only work when [youtube-trusted-session](https://github.com/PureDevLabs/youtube-trusted-session) is also installed on the SAME server
+  - Trusted Session does NOT require any YouTube accounts
+  - Trusted Sessions automatically regenerate every 2 hours
+  - Trusted Sessions should not require manual, regular maintenance (unlike OAuth Tokens)
+- Added Disable buttons to the OAuth Management admin section to disable any given OAuth Token (without deleting it)
+
+#### Updated files
+```
+README.md
+app/Console/Commands/GenerateTrustedSession.php
+app/Console/Commands/RefreshOAuthTokens.php
+app/Console/Kernel.php
+app/Http/Livewire/OauthTokens.php
+app/Http/Livewire/Settings.php
+app/Models/OauthToken.php
+app/Settings/AuthSettings.php
+config/settings.php
+database/migrations/2024_07_26_095111_add_fields_to_oauth_tokens_table.php
+database/settings/2024_08_11_101407_create_auth_settings.php
+lib/BackendApp.php
+lib/Extractors/Youtube.php
+resources/js/nsig.js
+resources/views/admin/settings.blade.php
+resources/views/livewire/oauth-tokens.blade.php
+resources/views/livewire/settings.blade.php
+resources/views/navigation-menu.blade.php
+```
+
+run after update
+
+```bash
+php artisan migrate
+php artisan optimize:clear
+php artisan generate:trustedSession
+```
+
+---
+
 ### v3.2.1
 - Added OAuth login capability for YouTube requests 
 - See https://github.com/PureDevLabs/TubeVideoBackend/discussions/8
