@@ -30,6 +30,7 @@ class Kernel extends ConsoleKernel
             $schedule->command('cache:clear')->withoutOverlapping()->everyTwoHours();
         }
         $schedule->command('refresh:OAuthTokens')->withoutOverlapping()->everyFiveMinutes()->appendOutputTo(storage_path() . "/logs/refresh-oauth-tokens.log");
+        $schedule->command('generate:trustedSession')->withoutOverlapping()->everyTwoHours()->appendOutputTo(storage_path() . "/logs/generate-trusted-session.log");
     }
 
     /**

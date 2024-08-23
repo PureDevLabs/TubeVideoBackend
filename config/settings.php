@@ -7,7 +7,8 @@ return [
      * put them (manually) here.
      */
     'settings' => [
-        LicenseSettings::class
+        LicenseSettings::class,
+        AuthSettings::class
     ],
 
     /*

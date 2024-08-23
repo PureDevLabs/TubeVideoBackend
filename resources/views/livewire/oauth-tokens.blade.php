@@ -70,7 +70,7 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach ($data as $item)
-                                    <tr{!! ((int)$item->expiry_time < time()) ? " style='background-color:#ffe7e6'" : "" !!}>
+                                    <tr{!! ((int)$item->expiry_time < time()) ? " style='background-color:#ffe7e6'" : (((int)$item->enabled == 0) ? " style='background-color:#dedede'" : "") !!}>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="ml-4">
@@ -99,6 +99,9 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <x-jet-secondary-button wire:click="testToken({{ $item->id }})" onclick="confirm('Test a YouTube Video API request with this token?') || event.stopImmediatePropagation()">
                                                 {{ __('Test') }}
+                                            </x-jet-button>
+                                            <x-jet-secondary-button wire:click="toggleToken({{ $item->id }})" onclick="confirm('{{ ((bool)$item->enabled) ? __('Disable') : __('Enable') }} this token?') || event.stopImmediatePropagation()">
+                                                {{ ((bool)$item->enabled) ? __('Disable') : __('Enable') }}
                                             </x-jet-button>
                                             <x-jet-danger-button wire:click="deleteToken({{ $item->id }})" onclick="confirm('Are you sure you want to remove this Token?') || event.stopImmediatePropagation()">
                                                 {{ __('Delete') }}

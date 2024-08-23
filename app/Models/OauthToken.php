@@ -9,5 +9,5 @@ class OauthToken extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['access_token', 'refresh_token', 'expiry_time'];
+    protected $fillable = ['access_token', 'refresh_token', 'expiry_time', 'enabled'];
 }

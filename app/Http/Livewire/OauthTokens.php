@@ -37,14 +37,14 @@ class OauthTokens extends Component
         $token->access_token = $this->state['accessToken'];
         $token->refresh_token = $this->state['refreshToken'];
         $token->expiry_time = time() + (int)$this->state['expiryTime'];
+        $token->enabled = 1;
         $token->created_at = now();
         $token->updated_at = now();
         $token->save();
 
         $this->reset('state');
 
-        $tokens = OauthToken::all();
-        Cache::put('oauth:tokens', json_encode($tokens->toArray()));
+        $this->updateCache();
 
         $this->emit('saved');
     }
@@ -57,8 +57,7 @@ class OauthTokens extends Component
     public function deleteToken($id)
     {
         OauthToken::destroy($id);
-        $tokens = OauthToken::all();
-        Cache::put('oauth:tokens', json_encode($tokens->toArray()));
+        $this->updateCache();
     }
 
     public function testToken($id)
@@ -68,6 +67,14 @@ class OauthTokens extends Component
         $testOutput = $youtube->TestPlayerApiRequest("HMpmI2F2cMs", $token['access_token']);
         $this->testContent = json_encode($testOutput, JSON_PRETTY_PRINT);
         $this->showModal = true;
+    }
+
+    public function toggleToken($id)
+    {
+        $token = OauthToken::find($id);
+        $token->enabled = (int)(!((bool)$token->enabled));
+        $token->save();
+        $this->updateCache();
     }
 
     public function closeModal()
@@ -80,5 +87,12 @@ class OauthTokens extends Component
         return view('livewire.oauth-tokens', [
             'data' => $this->read(),
         ]);
+    }
+
+    # Private "Helper" Methods
+    private function updateCache()
+    {
+        $tokens = OauthToken::where('enabled', 1)->get();
+        Cache::put('oauth:tokens', json_encode($tokens->toArray()));
     }
 }
