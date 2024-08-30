@@ -16,6 +16,28 @@ Misc:
 
 - several improvements and code refactoring
 
+#### Updated files
+
+```
+README.md
+app/Console/Commands/GenerateTrustedSession.php
+app/Http/Controllers/ApiController.php
+app/Http/Livewire/ApiManagement.php
+app/Http/Livewire/ManageKey.php
+app/Http/Livewire/Settings.php
+app/Http/Livewire/UrlBlacklist.php
+app/Install/Checker.php
+app/Install/Installer.php
+composer.json
+config/cache.php
+config/database.php
+lib/BackendApp.php
+lib/DMCA.php
+lib/Extractors/Youtube.php
+resources/views/installer/check.blade.php
+```
+--- 
+
 ### v3.2.2
 - Added ability to use a "Trusted Session" for authenticating YouTube requests 
   - Choose your authentication method (Trusted Session or OAuth Tokens) in the admin section, at **Settings -> YouTube Authentication**
@@ -138,31 +160,9 @@ composer dump-autoload
 Added:
 - Added a function to bypass YouTube ip bans by refreshing IPv6 addresses all 2 hours. Requires a /64 IPv6 Subnet and it MUST be configured on your Server. 
 
-#### Updated files
-```
-.env.example 
-app/Console/Commands/GenerateNewIPv6.php (new)
-app/Console/Kernel.php
-lib/Extractors/Youtube.php
-lib/Extractors/YoutubeData.php
-lib/BackendApp.php
-lib/ProxyDownload.php
-lib/Misc/BaseHandler.php (new)
-lib/Misc/Generator.php (new)
-```
-
 ### v3.1.1
 Fixes:
 - TikTok Extractor
-
-#### Updated files
-```
-lib/Extractors/Tiktok.php
-lib/Extractors/Extractor.php
-.env.example
-config/app.php
-lib/BackendApp.php
-```
 
 ### v3.1.0
 
