@@ -15,7 +15,7 @@
                         <tbody>
                             <tr>
                                 <td class="text-left">PHP Version?</td>
-                                <td>7.4.x, 8.1.x</td>
+                                <td>7.4.x - 8.1.x</td>
                                 <td>{!! $data['php_version'] ? '<span class="text-success">' . PHP_VERSION . '</span>' : '<span class="text-error">' . PHP_VERSION . '</span>' !!}</td>
                             </tr>
                             <tr>
@@ -38,12 +38,6 @@
                                 <td>yes</td>
                                 <td>{!! $data['php_putenv'] ? '<span class="text-success">yes</span>' : '<span class="text-error">no</span>' !!}</td>
                             </tr>
-                            <tr>
-                                <td class="text-left">PHP <b>IonCube</b> Loader installed?</td>
-                                <td>yes</td>
-                                <td>{!! $data['ioncube_installed'] ? '<span class="text-success">yes</span>' : '<span class="text-error">no</span>' !!}</td>
-                            </tr>
-
                             <tr>
                                 <td class="text-left">Redis connection?</td>
                                 <td>yes</td>

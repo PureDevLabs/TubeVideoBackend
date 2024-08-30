@@ -2,6 +2,20 @@
 
 ## Changelog:
 
+### v3.2.3
+
+Fixed:
+
+- Fixed an issue with Temporary and Permanent Cache. e.g. related to DMCA Tool (Blocked URLs) and Trusted Session Storage
+
+Improved:
+
+- added API Key Cache that improves Performance and decrease the load on MySQL
+
+Misc:
+
+- several improvements and code refactoring
+
 ### v3.2.2
 - Added ability to use a "Trusted Session" for authenticating YouTube requests 
   - Choose your authentication method (Trusted Session or OAuth Tokens) in the admin section, at **Settings -> YouTube Authentication**

@@ -9,23 +9,7 @@ class Checker
 {
     public function checkPhpVersion()
     {
-        // return version_compare(PHP_VERSION, '7.4.0') >= 0 && version_compare(PHP_VERSION, '8.0.0') < 0 && version_compare(PHP_VERSION, '8.1.0') >= 0;
-        if (version_compare(PHP_VERSION, '7.4.0') >= 0)
-        {
-            return true;
-        }
-        elseif (version_compare(PHP_VERSION, '8.1.0') >= 0)
-        {
-            return true;
-        }
-        elseif (version_compare(PHP_VERSION, '8.0.0') < 0)
-        {
-            return false;
-        }
-        else
-        {
-            return false;
-        }
+        return version_compare(PHP_VERSION, '7.4.0') >= 0 && version_compare(PHP_VERSION, '8.2.0') < 0;
     }
 
     public function checkDbConnection()
@@ -75,11 +59,6 @@ class Checker
     public function isPopenEnabled()
     {
         return (function_exists('popen')) ? true : false;
-    }
-
-    public function isIoncubeLoaded()
-    {
-        return extension_loaded("IonCube Loader");
     }
 
     public static function isRedisReady()

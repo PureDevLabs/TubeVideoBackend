@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use App\Models\Key;
 use Livewire\Component;
 use App\Models\Management;
+use Illuminate\Support\Facades\Cache;
 
 class ManageKey extends Component
 {
@@ -29,6 +30,7 @@ class ManageKey extends Component
         {
             Management::create($this->modelData());
             $this->reset('allowed_ip');
+            Cache::store('permaCache')->forget('apiKeys');
         }
         catch (\Illuminate\Database\QueryException $e)
         {
@@ -59,6 +61,7 @@ class ManageKey extends Component
     public function deleteIP($id)
     {
         Management::destroy($id);
+        Cache::store('permaCache')->forget('apiKeys');
     }
 
     public function render()

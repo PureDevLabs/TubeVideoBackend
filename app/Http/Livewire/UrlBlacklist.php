@@ -6,7 +6,6 @@ use Livewire\Component;
 use App\Models\BlacklistUrl;
 use App\Models\Extractor;
 use Illuminate\Support\Facades\Cache;
-use PureDevLabs\DMCA;
 
 class UrlBlacklist extends Component
 {
@@ -19,20 +18,20 @@ class UrlBlacklist extends Component
 
     public function mount()
     {
-        $sitesData = Cache::rememberForever('extractors:all', function() {
-            return json_encode(Extractor::all());
-        });
-        $sitesData = json_decode($sitesData, true);
-        $sitesData = (json_last_error() == JSON_ERROR_NONE) ? collect($sitesData) : [];
-        if (empty($sitesData)) dd('Error: No sites data!');
+        $extractors = Extractor::all();
+        $sitesData = (!$extractors->isEmpty()) ? collect($extractors) : [];
         $this->sites = $sitesData->pluck('formal_name', 'name');
-        $this->siteId = $sitesData->where('name', $this->site)->first()['id'];
+        $this->siteId = $sitesData->where('name', $this->site)->first()->id;
         $this->blockedUrls = $this->existingUrls = BlacklistUrl::where('extractor_id', $this->siteId)->pluck('url')->join("\n");
+    }
+
+    public function read()
+    {
+        return BlacklistUrl::with('extractor')->get();
     }
 
     public function change()
     {
-		//dd($this->site);
 		$this->emit('refreshBlacklistUrls', $this->site);
     }
 
@@ -45,17 +44,13 @@ class UrlBlacklist extends Component
     public function updateBlacklistURLs()
     {
         $data = [];
-        $saved = false;
         $urls = trim(preg_replace('/\|+/', '\n', preg_replace('/\s/', '|', $this->blockedUrls)));
-        //dd($urls . "<br>" . $this->existingUrls);
         $newUrls = trim(preg_replace('/' . preg_quote($this->existingUrls, '/') . '/', "", $urls, 1));
-        //dd($newUrls);
         if (!empty($newUrls) || (empty($urls) && !empty($this->existingUrls)))
         {
             if ($newUrls == $urls)
             {
                 BlacklistUrl::where('extractor_id', $this->siteId)->delete();
-                $saved = true;
             }
             if (!empty($newUrls))
             {
@@ -66,21 +61,11 @@ class UrlBlacklist extends Component
                     {
                         $data[] = ['extractor_id' => $this->siteId, 'url' => $newUrl, 'created_at' => now(), 'updated_at' => now()];
                     }
-                    //dd($data);
                     BlacklistUrl::insert($data);
-                    $saved = true;
+                    Cache::store('permaCache')->forget('blockedurls');
+                    $this->emit('saved');
                 }
             }
-        }
-        if ($saved)
-        {
-            $this->existingUrls = $urls;
-            $cachedUrls = DMCA::ConvertUrlsToJson($urls);
-            $cachedIds = DMCA::ConvertUrlsToJson($urls, true);
-            //dd($cachedUrls);
-            Cache::put('blacklist:' . $this->site . ':urls', $cachedUrls);
-            Cache::put('blacklist:' . $this->site . ':ids', $cachedIds);
-            $this->emit('saved');
         }
     }
 

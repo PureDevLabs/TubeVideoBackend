@@ -101,9 +101,18 @@ class ApiController extends Controller
 
     private function checkApiKey($apiKey)
     {
-        $result = Key::with('management')->where('apikey', $apiKey)->get();
+        $apiKeyData = Cache::store('permaCache')->rememberForever('apiKeys', function() {
+            return Key::with('management')->get();
+        });
 
-        if ($result->isEmpty())
+        if ($apiKeyData->isEmpty())
+        {
+            return $this->InvalidApiKey();
+        }
+
+        $keyData = $apiKeyData->where('apikey', $apiKey)->first();
+
+        if (empty($keyData))
         {
             return $this->InvalidApiKey();
         }
@@ -113,9 +122,9 @@ class ApiController extends Controller
 
             $referer = (isset($_SERVER['HTTP_REFERER'])) ? parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST) : '';
 
-            if (isset($result[0]->management))
+            if (isset($keyData->management))
             {
-                foreach ($result[0]->management as $allowed)
+                foreach ($keyData->management as $allowed)
                 {
                     if (isset($allowed->allowed_ip) && preg_match('/(' . preg_quote($allowed->allowed_ip, '/') . ')$/', $referer) == 1 || isset($allowed->allowed_ip) && $allowed->allowed_ip === app(Core::class)->RefererIP())
                     {

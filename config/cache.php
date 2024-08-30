@@ -79,6 +79,11 @@ return [
             'lock_connection' => 'default',
         ],
 
+        'permaCache' => [
+            'driver' => 'redis',
+            'connection' => 'permaCache',
+        ],
+
         'dynamodb' => [
             'driver' => 'dynamodb',
             'key' => env('AWS_ACCESS_KEY_ID'),
@@ -105,6 +110,6 @@ return [
     |
     */
 
-    'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache'),
+    'prefix' => '_cache',
 
 ];
