@@ -36,6 +36,13 @@ lib/DMCA.php
 lib/Extractors/Youtube.php
 resources/views/installer/check.blade.php
 ```
+
+run after update
+
+```bash
+php artisan generate:trustedSession
+```
+
 --- 
 
 ### v3.2.2
