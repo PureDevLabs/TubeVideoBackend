@@ -18,14 +18,13 @@ class DMCA
 
         if (!$data->isEmpty())
         {
-
             foreach ($data as $blocked)
             {
                 $vid = Extractor::GetVideoId($blocked->url);
                 
-                if ($url === $blocked->url || $id === $vid && strtolower($site) === $blocked->extractor->name)
+                if ($url === $blocked->url || ($id === $vid && strtolower($site) === $blocked->extractor->name))
                 {
-                    $isBlocked .= true;
+                    $isBlocked = true;
                     break;
                 } 
             }
