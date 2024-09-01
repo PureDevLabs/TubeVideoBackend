@@ -52,8 +52,7 @@ php artisan generate:trustedSession
 
 
 Full Changelog: [v3.2.0...v3.2.1](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.0...v3.2.1)
-=======
-Full Changelog: [v3.2.0...v3.2.1](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.0...v3.2.1)
+
 
 
 run after update
