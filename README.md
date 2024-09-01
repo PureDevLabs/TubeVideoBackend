@@ -77,7 +77,7 @@ composer dump-autoload
 
 ### v3.1.2
 Added:
-- Added a function to bypass YouTube ip bans by refreshing IPv6 addresses all 2 hours. Requires a /64 IPv6 Subnet and it MUST be configured on your Server. 
+- Added a function to bypass YouTube ip bans by refreshing IPv6 addresses all 2 hours. <br/>Requires a /64 IPv6 Subnet and it MUST be configured on your Server. 
 
 
 ### v3.1.1
