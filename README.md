@@ -2,6 +2,28 @@
 
 ## Changelog:
 
+### v3.2.3
+
+Fixed:
+
+- Fixed an issue with Temporary and Permanent Cache. e.g. related to DMCA Tool (Blocked URLs) and Trusted Session Storage
+
+Improved:
+
+- added API Key Cache that improves Performance and decrease the load on MySQL
+
+Misc:
+
+- several improvements and code refactoring
+
+Full Changelog: [v3.2.2...v3.2.3](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.2...v3.2.3)
+
+run after update
+
+```bash
+php artisan generate:trustedSession
+```
+
 ### v3.2.2
 - Added ability to use a "Trusted Session" for authenticating YouTube requests 
   - Choose your authentication method (Trusted Session or OAuth Tokens) in the admin section, at **Settings -> YouTube Authentication**
@@ -28,7 +50,11 @@ php artisan generate:trustedSession
 - See https://github.com/PureDevLabs/TubeVideoBackend/discussions/8
 
 
-Full Changelog: [v3.2.0...v3.2.11](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.0...v3.2.1)
+
+Full Changelog: [v3.2.0...v3.2.1](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.0...v3.2.1)
+=======
+Full Changelog: [v3.2.0...v3.2.1](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.0...v3.2.1)
+
 
 run after update
 
@@ -55,7 +81,7 @@ composer dump-autoload
 
 ### v3.1.2
 Added:
-- Added a function to bypass YouTube ip bans by refreshing IPv6 addresses all 2 hours. Requires a /64 IPv6 Subnet and it MUST be configured on your Server. 
+- Added a function to bypass YouTube ip bans by refreshing IPv6 addresses all 2 hours. <br/>Requires a /64 IPv6 Subnet and it MUST be configured on your Server. 
 
 
 ### v3.1.1

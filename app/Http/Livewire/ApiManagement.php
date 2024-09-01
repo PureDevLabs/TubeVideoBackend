@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Models\Key;
 use Livewire\Component;
+use Illuminate\Support\Facades\Cache;
 
 class ApiManagement extends Component
 {
@@ -25,6 +26,7 @@ class ApiManagement extends Component
         {
             Key::create($this->modelData());
             $this->reset('name');
+            Cache::store('permaCache')->forget('apiKeys');
         }
         catch (\Illuminate\Database\QueryException $e)
         {
@@ -47,6 +49,7 @@ class ApiManagement extends Component
     public function deleteKey($id)
     {
         Key::destroy($id);
+        Cache::store('permaCache')->forget('apiKeys');
     }
 
     public function read()

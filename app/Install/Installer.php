@@ -27,7 +27,6 @@ class Installer extends Checker
         }
     }
 
-
     public function check()
     {
         $data = [
@@ -36,7 +35,6 @@ class Installer extends Checker
             'php_proc_open' => $this->isProcOpenEnabled(),
             'php_popen' => $this->isPopenEnabled(),
             'php_putenv' => $this->isPutenvEnabled(),
-            'ioncube_installed' => $this->isIoncubeLoaded(),
             'check_db' => $this->checkDbConnection(),
             'check_dbTable' => $this->checkDbTable(),
             'redis_connect' => $this->isRedisReady()
@@ -98,7 +96,7 @@ APP_DEBUG=false
 
         // @ignoreCodingStandard
         $rows       = explode("\n", $env);
-        $unwanted   = "DB_HOST|DB_DATABASE|DB_USERNAME|DB_PASSWORD|APP_URL|REDIS_HOST|REDIS_PASSWORD|REDIS_PORT";
+        $unwanted   = "DB_HOST|DB_DATABASE|DB_USERNAME|DB_PASSWORD|APP_URL|REDIS_HOST|REDIS_PASSWORD|REDIS_PORT|APP_ENV|APP_DEBUG";
         $cleanArray = preg_grep("/$unwanted/i", $rows, PREG_GREP_INVERT);
 
         $cleanString = implode("\n", $cleanArray);

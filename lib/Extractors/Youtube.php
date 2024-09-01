@@ -135,7 +135,7 @@ class Youtube extends Extractor
         }
         if ($this->_authMethod == "session")
         {
-            $item['url'] .= "&pot=" . urlencode(Cache::get('trustedSession:poToken', ''));
+            $item['url'] .= "&pot=" . urlencode(Cache::store('permaCache')->get('trustedSession:poToken', ''));
             //$headers = $headers ?? (array)get_headers($item['url'], true);
             //$statusCode = $headers[0] ?? '';
         }
@@ -445,17 +445,17 @@ class Youtube extends Extractor
                 $postData['context']['client'] = [
                     'clientName' => $postDataReq['reqParams']['webParams']['clientName'] ?? 'WEB',
                     'clientVersion' => $postDataReq['reqParams']['webParams']['clientVersion'] ?? '2.20240726.00.00',
-                    "visitorData" => Cache::get('trustedSession:visitorData', ''),
+                    "visitorData" => Cache::store('permaCache')->get('trustedSession:visitorData', ''),
                     "userAgent" => $userAgent
                 ];
                 $postData['context']['user'] = [
                     'lockedSafetyMode' => false
                 ];
                 $postData['playbackContext']['contentPlaybackContext'] = [
-                    'signatureTimestamp' => Cache::get('trustedSession:sigTimestamp', '')
+                    'signatureTimestamp' => Cache::store('permaCache')->get('trustedSession:sigTimestamp', '')
                 ];
                 $postData['serviceIntegrityDimensions'] = [
-                    "poToken" => Cache::get('trustedSession:poToken', '')
+                    "poToken" => Cache::store('permaCache')->get('trustedSession:poToken', '')
                 ];
             }
             try
