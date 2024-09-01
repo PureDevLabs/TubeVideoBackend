@@ -50,7 +50,7 @@ php artisan generate:trustedSession
 - See https://github.com/PureDevLabs/TubeVideoBackend/discussions/8
 
 
-Full Changelog: [v3.2.0...v3.2.11](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.0...v3.2.1)
+Full Changelog: [v3.2.0...v3.2.1](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.0...v3.2.1)
 
 run after update
 
