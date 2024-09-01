@@ -16,7 +16,7 @@ Misc:
 
 - several improvements and code refactoring
 
-Full Changelog: [v3.2.2...v3.2.3.rc.1](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.2...v3.2.3.rc.1)
+Full Changelog: [v3.2.2...v3.2.3](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.2...v3.2.3)
 
 run after update
 
