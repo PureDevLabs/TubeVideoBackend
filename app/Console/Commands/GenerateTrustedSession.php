@@ -73,6 +73,12 @@ class GenerateTrustedSession extends Command
                     $response = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(4)->get($json['basejs']);
                     $response = ($response->successful() && $response->status() == 200) ? $response->body() : '';
                     Storage::disk('local')->put(Youtube::_BASE_JS, $response);
+                    if (Storage::disk('local')->exists(Youtube::_BASE_JS))
+                    {
+                        $file = Storage::disk('local')->path(Youtube::_BASE_JS);
+                        chown(dirname($file), get_current_user());
+                        chown($file, get_current_user());
+                    }
                     if (preg_match('/\WsignatureTimestamp:(\d+)\D/i', $response, $sigTimestamp) == 1)
                     {
                         Cache::store('permaCache')->put('trustedSession:sigTimestamp', $sigTimestamp[1]);
