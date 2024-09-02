@@ -2,6 +2,18 @@
 
 ## Changelog:
 
+### v3.2.4
+
+Fixed:
+
+- Fixed an issue with 403 Http Status caused through duplicated audio only streams.  [#15](https://github.com/PureDevLabs/TubeVideoBackend/issues/15)
+- Fixed file owner permissions during generate of trusted session.  [#14](https://github.com/PureDevLabs/TubeVideoBackend/issues/14)
+
+
+Full Changelog: [v3.2.3...v3.2.4](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.3...v3.2.4)
+
+---
+
 ### v3.2.3
 
 Fixed:
@@ -23,6 +35,7 @@ run after update
 ```bash
 php artisan generate:trustedSession
 ```
+---
 
 ### v3.2.2
 - Added ability to use a "Trusted Session" for authenticating YouTube requests 
