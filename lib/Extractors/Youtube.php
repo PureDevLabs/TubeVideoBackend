@@ -79,7 +79,11 @@ class Youtube extends Extractor
                             {
                                 if (in_array($item['itag'], $itagGroup))
                                 {
-                                    ${$catName . 'Streams'}[] = $this->SortFormattedOutput($item);
+                                    $formattedOutput = $this->SortFormattedOutput($item);
+                                    if (!empty($formattedOutput))
+                                    {
+                                        ${$catName . 'Streams'}[] = $formattedOutput;
+                                    }
                                     break;
                                 }
                             }
@@ -136,8 +140,13 @@ class Youtube extends Extractor
         if ($this->_authMethod == "session")
         {
             $item['url'] .= "&pot=" . urlencode(Cache::store('permaCache')->get('trustedSession:poToken', ''));
-            //$headers = $headers ?? (array)get_headers($item['url'], true);
-            //$statusCode = $headers[0] ?? '';
+
+            if(in_array($item['itag'], [140, 251, 250]))
+            {
+                $head = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 6)])->head($item['url']);
+                $statusCode = $head->status();
+                if ($statusCode === 403) return [];
+            }
         }
         return array(
             'url' => $item['url'],
@@ -146,8 +155,7 @@ class Youtube extends Extractor
             'bitrate' => isset($item['bitrate']) ? round($item['bitrate'] / 1000, 0) . ' kbps' : '',
             'format' => $this->Parser->ParseItagInfo($item['itag']),
             'ext' => $this->Parser->ParseItagFileExt($item['itag']),
-            'contentLength' => $contentLength
-            //'statusCode' => $statusCode ?? ''
+            'contentLength' => $contentLength,
         );
     }
 
