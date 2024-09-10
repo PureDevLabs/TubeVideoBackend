@@ -2,6 +2,17 @@
 
 ## Changelog:
 
+### v3.2.5
+
+Fixes:
+- fixing recent YouTube changes
+
+ Full Changelog: [v3.2.4...v3.2.5](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.4...v3.2.5)
+
+ delete `software.json` from `storage/app/YouTube` folder after update.
+ 
+---
+
 ### v3.2.4
 
 Fixed:
