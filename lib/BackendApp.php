@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 class BackendApp
 {
-    const VERSION = '3.2.4';
+    const VERSION = '3.2.5';
 
     public static function Version()
     {
