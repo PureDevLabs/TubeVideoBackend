@@ -451,8 +451,8 @@ class Youtube extends Extractor
             {
                 $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36,gzip(gfe)';
                 $postData['context']['client'] = [
-                    'clientName' => $postDataReq['reqParams']['webParams']['clientName'] ?? 'WEB',
-                    'clientVersion' => $postDataReq['reqParams']['webParams']['clientVersion'] ?? '2.20240726.00.00',
+                    'clientName' => $postDataReq['reqParams']['webExperimentsParams']['clientName'] ?? 'WEB',
+                    'clientVersion' => $postDataReq['reqParams']['webExperimentsParams']['clientVersion'] ?? '2.20240726.00.00',
                     "visitorData" => Cache::store('permaCache')->get('trustedSession:visitorData', ''),
                     "userAgent" => $userAgent
                 ];
