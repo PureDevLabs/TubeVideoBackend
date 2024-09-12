@@ -1,6 +1,28 @@
 ## Tube Video Backend v3
+![](https://img.shields.io/badge/Build-passing-brightgreen) ![](https://img.shields.io/badge/Version-3.2.5-blue)
 
-## Changelog:
+### Recommended Requirements
+- OS: Debian 12 / Ubuntu 22.04
+- Web Panel: aaPanel
+- Apache or Nginx
+- mod_rewrite (URL rewriting)
+- PHP 7.4.x - 8.1.x
+- PHP Extensions: cURL, Fileinfo, and Redis (Optional: Opcache)
+- PHP Functions enabled: proc_open, popen, putenv, exec, chown, pcntl_signal, and pcntl_alarm
+- MySQL 8 / MariaDB 10.7
+- Redis
+- IPv6 /64 Subnet
+- YouTube Auth method (Choose ONE in admin section, at **Settings -> YouTube Authentication**)
+  - Trusted Session **_(recommended!)_**
+    - Install [youtube-trusted-session](https://github.com/PureDevLabs/youtube-trusted-session)
+    - See https://github.com/PureDevLabs/TubeVideoBackend?tab=readme-ov-file#v322
+  - OAuth Tokens
+    - Install [youtube-oauth](https://github.com/PureDevLabs/youtube-oauth)
+    - See https://github.com/PureDevLabs/TubeVideoBackend/discussions/8
+
+---
+
+### Changelog:
 
 ### v3.2.5
 
