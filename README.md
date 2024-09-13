@@ -24,14 +24,25 @@
 
 ### Changelog:
 
+### v3.2.6
+
+Fixes:
+
+- Better automate software.json updates
+
+Full Changelog: [v3.2.5...v3.2.6](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.5...v3.2.6)
+ 
+---
+
 ### v3.2.5
 
 Fixes:
-- fixing recent YouTube changes
 
- Full Changelog: [v3.2.4...v3.2.5](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.4...v3.2.5)
+- Fixing recent YouTube changes
 
- delete `software.json` from `storage/app/YouTube` folder after update.
+Full Changelog: [v3.2.4...v3.2.5](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.4...v3.2.5)
+
+Delete `software.json` from `storage/app/YouTube` folder after update.
  
 ---
 

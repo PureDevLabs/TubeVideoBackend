@@ -476,22 +476,29 @@ class Youtube extends Extractor
                     if ($response->status() == 200)
                     {
                         $status = $json['playabilityStatus'] ?? null;
-                        if (!is_null($status) && isset($status['status'], $status['reason']) && $status['status'] == 'UNPLAYABLE' && preg_match('/limit/', $status['reason']) == 1)
+                        if (!is_null($status) && isset($status['status'], $status['reason']) && in_array($status['status'], ['UNPLAYABLE', 'LOGIN_REQUIRED']))
                         {
-                            if ($this->_unplayableTries < self::_MAX_UNPLAYABLE_TRIES)
+                            $updateJson = preg_match('/\W?sign in\W/i', $status['reason']) == 1;
+                            switch ($status['status'])
                             {
-                                $this->_unplayableTries++;
-                                return $this->GetYouTubeVideoData($vid);
+                                case 'UNPLAYABLE':
+                                    if (preg_match('/limit/', $status['reason']) == 1 && $this->_unplayableTries < self::_MAX_UNPLAYABLE_TRIES)
+                                    {
+                                        $this->_unplayableTries++;
+                                        return $this->GetYouTubeVideoData($vid);
+                                    }
+                                    if ($updateJson) $this->UpdateSoftware();
+                                    break;
+                                case 'LOGIN_REQUIRED':
+                                    if ($updateJson) $this->UpdateSoftware();
+                                    break;
                             }
-                            else
-                            {
-                                return array(
-                                    'error' => true,
-                                    'httpCode' => $response->status(),
-                                    'errorMessage' => $status['reason'],
-                                    'errorCode' => $status['status']
-                                );
-                            }
+                            return [
+                                'error' => true,
+                                'httpCode' => $response->status(),
+                                'errorMessage' => $status['reason'],
+                                'errorCode' => $status['status']
+                            ];
                         }
                         return $response->body();
                     }

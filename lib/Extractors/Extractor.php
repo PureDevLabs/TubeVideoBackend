@@ -118,7 +118,7 @@ class Extractor extends Core
     protected function UpdateSoftware()
     {
         $response = Http::withoutVerifying()->get(self::_SOFTWARE_JSON_REMOTE);
-        if ($response->successful() && !empty($response->json('lastUpdate')))
+        if ($response->successful() && $response->status() == 200 && !empty($response->json('lastUpdate')))
         {
             Storage::disk('local')->put(self::_SOFTWARE_JSON_LOCAL, $response->body());
         }
