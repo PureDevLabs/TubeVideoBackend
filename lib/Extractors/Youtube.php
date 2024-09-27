@@ -475,12 +475,16 @@ class Youtube extends Extractor
             }
             try
             {
-                $reqOptions = ['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)];
+                $response = '';
+                $apiUrl = 'https://www.youtube.com/youtubei/v1/player';
                 if (env('APP_ENABLE_PROXY_SUPPORT', false))
                 {
-                    $reqOptions['proxy'] = env('APP_HTTP_PROXY', '');
+                    $response = Http::withOptions(['proxy' => env('APP_HTTP_PROXY', ''), 'force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(5)->retry(3, 500)->withUserAgent($userAgent)->withoutVerifying()->withHeaders($this->GeneratePostRequestHeaders())->post($apiUrl, $postData);
                 }
-                $response = Http::withOptions($reqOptions)->timeout(4)->withUserAgent($userAgent)->withHeaders($this->GeneratePostRequestHeaders())->post('https://www.youtube.com/youtubei/v1/player', $postData);
+                else
+                {
+                    $response = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(4)->withUserAgent($userAgent)->withHeaders($this->GeneratePostRequestHeaders())->post($apiUrl, $postData);
+                }
 
                 $json = json_decode($response, true);
                 if (json_last_error() == JSON_ERROR_NONE)

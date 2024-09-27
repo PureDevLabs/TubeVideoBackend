@@ -13,7 +13,8 @@
 - Redis
 - IPv6 /64 Subnet
 - YouTube Auth method (Choose ONE in admin section, at **Settings -> YouTube Authentication**)
-  - Trusted Session **_(recommended!)_**
+  - None **_(recommended!)_**
+  - Trusted Session
     - Install [youtube-trusted-session](https://github.com/PureDevLabs/youtube-trusted-session)
     - See https://github.com/PureDevLabs/TubeVideoBackend?tab=readme-ov-file#v322
   - OAuth Tokens
@@ -23,6 +24,17 @@
 ---
 
 ### Changelog:
+
+### v3.2.7
+
+Added:
+
+- HTTP Proxy support for YouTube requests
+  - For proxy config, see https://github.com/PureDevLabs/TubeVideoBackend/discussions/24
+
+Full Changelog: [v3.2.6...v3.2.7](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.6...v3.2.7)
+ 
+---
 
 ### v3.2.6
 
@@ -137,7 +149,7 @@ composer dump-autoload
 
 ### v3.1.2
 Added:
-- Added a function to bypass YouTube ip bans by refreshing IPv6 addresses all 2 hours. <br/>Requires a /64 IPv6 Subnet and it MUST be configured on your Server. 
+- Added a function to bypass YouTube ip bans by refreshing IPv6 addresses every 2 hours. <br/>Requires a /64 IPv6 Subnet and it MUST be configured on your Server. 
 
 
 ### v3.1.1
