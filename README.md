@@ -1,5 +1,5 @@
 ## Tube Video Backend v3
-![](https://img.shields.io/badge/Build-passing-brightgreen) ![](https://img.shields.io/badge/Version-3.2.5-blue)
+![](https://img.shields.io/badge/Build-passing-brightgreen) ![](https://img.shields.io/badge/Version-3.2.7-blue)
 
 ### Recommended Requirements
 - OS: Debian 12 / Ubuntu 22.04
