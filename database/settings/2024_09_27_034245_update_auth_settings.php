@@ -8,7 +8,7 @@ class UpdateAuthSettings extends SettingsMigration
     {
         $this->migrator->update(
             'auth.method',
-            fn(string $method) => return ''
+            fn(string $method) => ''
         );
     }
 };

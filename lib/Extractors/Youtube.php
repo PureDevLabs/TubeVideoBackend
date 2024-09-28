@@ -137,7 +137,14 @@ class Youtube extends Extractor
             $contentLength = $headers['Content-Length'] ?? $contentLength;
             $contentLength = (is_array($contentLength)) ? (int)end($contentLength) : (int)$contentLength;
         }
-        if ($this->_authMethod == "session")
+        if (empty($this->_authMethod))
+        {
+            // IOS client has fewer download URLs, so extra overhead/latency here is negligible
+            $head = Http::withOptions(['force_ip_resolve' => 'v6'])->head($item['url']);
+            $statusCode = $head->status();
+            if ($statusCode === 403) return [];
+        }
+        elseif ($this->_authMethod == "session")
         {
             $item['url'] .= "&pot=" . urlencode(Cache::store('permaCache')->get('trustedSession:poToken', ''));
 

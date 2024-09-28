@@ -30,7 +30,7 @@
 Added:
 
 - HTTP Proxy support for YouTube requests
-  - For proxy config, see https://github.com/PureDevLabs/TubeVideoBackend/discussions/24
+  - For proxy config and troubleshooting instructions, see https://github.com/PureDevLabs/TubeVideoBackend/discussions/24
 
 Full Changelog: [v3.2.6...v3.2.7](https://github.com/PureDevLabs/TubeVideoBackend/compare/v3.2.6...v3.2.7)
  

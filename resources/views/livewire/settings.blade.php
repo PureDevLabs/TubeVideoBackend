@@ -51,7 +51,7 @@
                 <div class="p-6 card bordered">
                     <div class="form-control">
                         <label class="label cursor-pointer">
-                          <span class="label-text">None</span>
+                          <span class="label-text">None <i>(No authentication; recommended setting for HTTP proxy use)</i></span>
                           <input type="radio" id="authMethod" name="radio-6" class="radio checked:bg-red-500" value="" wire:model.defer="state.authMethod">
                         </label>
                     </div>
