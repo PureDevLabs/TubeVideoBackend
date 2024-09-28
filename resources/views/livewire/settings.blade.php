@@ -51,16 +51,22 @@
                 <div class="p-6 card bordered">
                     <div class="form-control">
                         <label class="label cursor-pointer">
-                          <span class="label-text">OAuth Tokens <i>(Manually create via "youtube-oauth" Bun script and add to Backend admin)</i></span>
-                          <input type="radio" id="authMethod" name="radio-6" class="radio checked:bg-red-500" value="oauth" wire:model.defer="state.authMethod">
+                          <span class="label-text">None <i>(No authentication; recommended setting for HTTP proxy use)</i></span>
+                          <input type="radio" id="authMethod" name="radio-6" class="radio checked:bg-red-500" value="" wire:model.defer="state.authMethod">
                         </label>
-                      </div>
-                      <div class="form-control">
+                    </div>
+                    <div class="form-control">
                         <label class="label cursor-pointer">
-                          <span class="label-text">Trusted Session <i>(Automatically generate via "youtube-trusted-session" Bun script in <b>/home</b> directory)</i></span>
-                          <input type="radio" id="authMethod" name="radio-6" class="radio checked:bg-blue-500" value="session" wire:model.defer="state.authMethod">
+                          <span class="label-text">OAuth Tokens <i>(Manually create via "youtube-oauth" Bun script and add to Backend admin)</i></span>
+                          <input type="radio" id="authMethod" name="radio-6" class="radio checked:bg-blue-500" value="oauth" wire:model.defer="state.authMethod">
                         </label>
-                      </div>
+                    </div>
+                    <div class="form-control">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">Trusted Session <i>(Automatically generate via "youtube-trusted-session" Bun script in <b>/home</b> directory)</i></span>
+                            <input type="radio" id="authMethod" name="radio-6" class="radio checked:bg-blue-500" value="session" wire:model.defer="state.authMethod">
+                        </label>
+                    </div>
                 </div>
             </div>
         </x-slot>

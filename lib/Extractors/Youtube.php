@@ -137,11 +137,18 @@ class Youtube extends Extractor
             $contentLength = $headers['Content-Length'] ?? $contentLength;
             $contentLength = (is_array($contentLength)) ? (int)end($contentLength) : (int)$contentLength;
         }
-        if ($this->_authMethod == "session")
+        if (empty($this->_authMethod))
+        {
+            // IOS client has fewer download URLs, so extra overhead/latency here is negligible
+            $head = Http::withOptions(['force_ip_resolve' => 'v6'])->head($item['url']);
+            $statusCode = $head->status();
+            if ($statusCode === 403) return [];
+        }
+        elseif ($this->_authMethod == "session")
         {
             $item['url'] .= "&pot=" . urlencode(Cache::store('permaCache')->get('trustedSession:poToken', ''));
 
-            if(in_array($item['itag'], [140, 251, 250]))
+            if (in_array($item['itag'], [140, 251, 250]))
             {
                 $head = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 6)])->head($item['url']);
                 $statusCode = $head->status();
@@ -439,15 +446,22 @@ class Youtube extends Extractor
             $postData = [
                 'context' => [
                     'client' => [
-                        'clientName' => $postDataReq['reqParams']['androidParams']['clientName'] ?? 'ANDROID',
-                        'clientVersion' => $postDataReq['reqParams']['androidParams']['clientVersion'] ?? '16.20'
+                        'clientName' => $postDataReq['reqParams']['iosParams']['clientName'] ?? 'IOS',
+                        'clientVersion' => $postDataReq['reqParams']['iosParams']['clientVersion'] ?? '17.33.2'
                     ]
                 ],
                 'videoId' => $vid,
                 'contentCheckOk' => true,
                 'racyCheckOk' => true
             ];
-            if ($this->_authMethod == "session")
+            if ($this->_authMethod == "oauth")
+            {
+                $postData['context']['client'] = [
+                    'clientName' => $postDataReq['reqParams']['androidParams']['clientName'] ?? 'ANDROID',
+                    'clientVersion' => $postDataReq['reqParams']['androidParams']['clientVersion'] ?? '16.20'
+                ];
+            }
+            elseif ($this->_authMethod == "session")
             {
                 $userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36,gzip(gfe)';
                 $postData['context']['client'] = [
@@ -468,7 +482,16 @@ class Youtube extends Extractor
             }
             try
             {
-                $response = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(4)->withUserAgent($userAgent)->withHeaders($this->GeneratePostRequestHeaders())->post('https://www.youtube.com/youtubei/v1/player', $postData);
+                $response = '';
+                $apiUrl = 'https://www.youtube.com/youtubei/v1/player';
+                if (env('APP_ENABLE_PROXY_SUPPORT', false))
+                {
+                    $response = Http::withOptions(['proxy' => env('APP_HTTP_PROXY', ''), 'force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(5)->retry(3, 500)->withUserAgent($userAgent)->withoutVerifying()->withHeaders($this->GeneratePostRequestHeaders())->post($apiUrl, $postData);
+                }
+                else
+                {
+                    $response = Http::withOptions(['force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(4)->withUserAgent($userAgent)->withHeaders($this->GeneratePostRequestHeaders())->post($apiUrl, $postData);
+                }
 
                 $json = json_decode($response, true);
                 if (json_last_error() == JSON_ERROR_NONE)
@@ -554,8 +577,11 @@ class Youtube extends Extractor
             ];
             if ($this->_authMethod != "session")
             {
+                $postHeaders['X-Goog-Api-Key'] = $data['reqParams']['apiKey'];
+            }
+            if ($this->_authMethod == "oauth")
+            {
                 $postHeaders += [
-                    'X-Goog-Api-Key' => $data['reqParams']['apiKey'],
                     'Cookie' => $data['reqParams']['cookie'],
                     'Authorization' => $auth
                 ];
