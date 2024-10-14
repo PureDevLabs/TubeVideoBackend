@@ -3,7 +3,7 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
-use App\Models\KeySettings;
+use App\Models\KeySettings as KeySettingsModel;
 use Illuminate\Support\Facades\Cache;
 
 class KeySettings extends Component
@@ -16,10 +16,10 @@ class KeySettings extends Component
 
     public function mount()
     {
-        $keySettings = KeySettings::firstWhere('key_id', $this->keyId);
+        $keySettings = KeySettingsModel::firstWhere('key_id', $this->keyId);
         if (is_null($keySettings))
         {
-            $keySettings = KeySettings::create([
+            $keySettings = KeySettingsModel::create([
                 'key_id' => $this->keyId
             ]);
         }
@@ -30,7 +30,7 @@ class KeySettings extends Component
     {
         $this->validate();
 
-        $keySettings = KeySettings::firstWhere('key_id', $this->keyId);
+        $keySettings = KeySettingsModel::firstWhere('key_id', $this->keyId);
         $keySettings->max_video_duration = $this->state['max_video_duration'];
         $keySettings->save();
 
