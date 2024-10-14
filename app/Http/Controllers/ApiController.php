@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Key;
+use App\Models\KeySettings;
 use PureDevLabs\Core;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -44,7 +45,7 @@ class ApiController extends Controller
                     }
                     else
                     {
-                        $data = $this->ValidRequest($site, $request->url);
+                        $data = $this->ValidRequest($site, $request->url, $apiKey);
                         $newData = mb_convert_encoding($data, "UTF-8", "auto");
                         (!isset($data['error'])) ? Cache::put('video:' . $site . ':' . $vid, json_encode($newData), 14400) : '';
 
@@ -53,7 +54,7 @@ class ApiController extends Controller
                 }
                 else
                 {
-                    $data = $this->ValidRequest($site, $request->url);
+                    $data = $this->ValidRequest($site, $request->url, $apiKey);
                     $newData = mb_convert_encoding($data, "UTF-8", "auto");
                     return $newData;
                 }
@@ -185,16 +186,36 @@ class ApiController extends Controller
         ];
     }
 
-    private function ValidRequest($site, $url)
+    private function ValidRequest($site, $url, $apiKey)
     {
         $site = "PureDevLabs\\Extractors\\" . Str::ucfirst($site);
         $extractor = new $site();
         $data = $extractor->GetDownloadLinks($url);
+        $data = (!isset($data['error']) && !empty($data)) ? $this->FilterResponse($data, $apiKey) : $data;
         return (empty($data)) ? [
             'error' => true,
             'code' => 404,
             'errorMsg' => 'No Streams found.',
             'message' => 'Error: No Streams found.'
         ] : $data;
+    }
+
+    private function FilterResponse(array $data, $apiKey)
+    {
+        $keySettings = Cache::store('permaCache')->rememberForever('keySettings', function() {
+            return KeySettings::with('key')->get();
+        });
+        $settings = $keySettings->firstWhere('key.apikey', $apiKey);
+        // Does duration exceed max allowed video duration?
+        if (!is_null($settings) && (float)$data['lengthSeconds'] > $settings->max_video_duration)
+        {
+            $data = [
+                'error' => true,
+                'code' => 403,
+                'errorMsg' => 'Forbidden',
+                'message' => 'Video duration exceeds the maximum allowed duration.'
+            ];
+        }
+        return $data;
     }
 }

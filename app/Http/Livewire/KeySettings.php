@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Http\Livewire;
+
+use Livewire\Component;
+use App\Models\KeySettings;
+use Illuminate\Support\Facades\Cache;
+
+class KeySettings extends Component
+{
+    public $state = [];
+    public $keyId;
+    protected $rules = [
+        'state.max_video_duration' => 'required'
+    ];
+
+    public function update()
+    {
+        $this->validate();
+
+        $keySettings = KeySettings::firstWhere('key_id', $this->keyId);
+        $keySettings->max_video_duration = $this->state['max_video_duration'];
+        $keySettings->save();
+
+        Cache::store('permaCache')->forget('keySettings');
+
+        $this->emit('saved');
+    }
+
+    public function render()
+    {
+        return view('livewire.key-settings');
+    }
+}

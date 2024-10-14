@@ -2,12 +2,12 @@
     <!-- Generate API Key -->
     <x-jet-form-section submit="allowIP">
         <x-slot name="title">
-            {{ __('Manage API KEY') }}
+            {{ __('Add/Remove IP/Domain') }}
         </x-slot>
 
         <x-slot name="description">
             {{ __('Add IP Addresses or Domains that are allowed to use this API key. (IPv4 and IPv6 are both supported.)') }}
-            <p>Note: For Server Side requests like PHP, NodeJS, Python allow IP adresses. For Client Side Javascript allow Domains.</p>
+            <p>Note: For Server Side requests using PHP, NodeJS, Python, etc., allow IP adresses. For Client Side JavaScript, allow Domains.</p>
         </x-slot>
 
         <x-slot name="form">

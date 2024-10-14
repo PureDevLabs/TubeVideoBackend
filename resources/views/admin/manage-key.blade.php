@@ -8,6 +8,14 @@
     <div class="py-12">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div class="overflow-hidden">
+                @livewire('key-settings', ['keyId' => $id])
+            </div>
+        </div>
+    </div>
+
+    <div class="py-12">
+        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div class="overflow-hidden">
                 @livewire('manage-key', ['keyId' => $id])
             </div>
         </div>
