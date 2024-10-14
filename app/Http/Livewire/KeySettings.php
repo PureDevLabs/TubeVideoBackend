@@ -14,6 +14,18 @@ class KeySettings extends Component
         'state.max_video_duration' => 'required'
     ];
 
+    public function mount()
+    {
+        $keySettings = KeySettings::firstWhere('key_id', $this->keyId);
+        if (is_null($keySettings))
+        {
+            $keySettings = KeySettings::create([
+                'key_id' => $this->keyId
+            ]);
+        }
+        $this->state['max_video_duration'] = $keySettings->max_video_duration;
+    }
+
     public function update()
     {
         $this->validate();
