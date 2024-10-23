@@ -486,7 +486,7 @@ class Youtube extends Extractor
                 $apiUrl = 'https://www.youtube.com/youtubei/v1/player';
                 if (env('APP_ENABLE_PROXY_SUPPORT', false))
                 {
-                    $response = Http::withOptions(['proxy' => env('APP_HTTP_PROXY', ''), 'force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(5)->retry(3, 500)->withUserAgent($userAgent)->withoutVerifying()->withHeaders($this->GeneratePostRequestHeaders())->post($apiUrl, $postData);
+                    $response = Http::withOptions(['proxy' => env('APP_HTTP_PROXY', ''), 'force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(20)->retry(3, 500)->withUserAgent($userAgent)->withoutVerifying()->withHeaders($this->GeneratePostRequestHeaders())->post($apiUrl, $postData);
                 }
                 else
                 {
