@@ -91,7 +91,7 @@ class Youtube extends Extractor
                             }
                         }
                     }
-                    return [
+                    $output = [
                         'extractor' => str_replace(__NAMESPACE__ . '\\', '', __CLASS__),
                         'videoId' => $videoDetails['videoId'] ?? $vid,
                         'title' => $videoDetails['title'] ?? "Unknown",
@@ -100,6 +100,12 @@ class Youtube extends Extractor
                         'audioOnly' => (isset($audioStreams)) ? array_reverse($audioStreams) : [],
                         'videoOnly' => $videoStreams ?? []
                     ];
+                    return (empty($output['videos']) && empty($output['audioOnly']) && empty($output['videoOnly'])) ? [
+                        'error' => true,
+                        'httpCode' => 404,
+                        "errorMsg" => "No Streams Found",
+                        "message" => "Can't find any download links."
+                    ] : $output;
                 }
                 else
                 {
