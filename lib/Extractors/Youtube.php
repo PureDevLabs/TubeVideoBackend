@@ -34,6 +34,8 @@ class Youtube extends Extractor
     protected $_unplayableTries = 0;
     protected $_basejsCode = '';
     protected $_ssigFunctions = [];
+    protected $_validUrlTest = false;
+    protected $_validUrls = true;
 
     public function __construct()
     {
@@ -140,9 +142,28 @@ class Youtube extends Extractor
         if (empty($this->_authMethod))
         {
             // IOS client has fewer download URLs, so extra overhead/latency here is negligible
-            $head = Http::withOptions(['force_ip_resolve' => 'v6'])->head($item['url']);
-            $statusCode = $head->status();
-            if ($statusCode === 403) return [];
+            if (env('APP_ENABLE_PROXY_SUPPORT', false))
+            {
+                // When using proxy, only test the first URL to mitigate proxy latency
+                if (!$this->_validUrlTest)
+                {
+                    $this->_validUrlTest = true;
+                    $userAgent = 'Mozilla/5.0 (Linux; Android 12; SAMSUNG SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/16.0 Chrome/92.0.4515.166 Mobile Safari/537.36';
+                    $head = Http::withOptions(['proxy' => env('APP_HTTP_PROXY', ''), 'force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(20)->retry(5, 500)->withUserAgent($userAgent)->withoutVerifying()->head($item['url']);
+                    $statusCode = $head->status();
+                    if ($statusCode === 403)
+                    {
+                        $this->_validUrls = false;
+                    }
+                }
+                if (!$this->_validUrls) return [];
+            }
+            else
+            {
+                $head = Http::withOptions(['force_ip_resolve' => 'v6'])->head($item['url']);
+                $statusCode = $head->status();
+                if ($statusCode === 403) return [];
+            }
         }
         elseif ($this->_authMethod == "session")
         {
@@ -486,7 +507,9 @@ class Youtube extends Extractor
                 $apiUrl = 'https://www.youtube.com/youtubei/v1/player';
                 if (env('APP_ENABLE_PROXY_SUPPORT', false))
                 {
-                    $response = Http::withOptions(['proxy' => env('APP_HTTP_PROXY', ''), 'force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(20)->retry(3, 500)->withUserAgent($userAgent)->withoutVerifying()->withHeaders($this->GeneratePostRequestHeaders())->post($apiUrl, $postData);
+                    //$response = Http::withOptions(['proxy' => env('APP_HTTP_PROXY', ''), 'force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(5)->retry(3, 500)->withUserAgent($userAgent)->withoutVerifying()->post("https://4.myip.is/", $postData);
+                    //die($response);
+                    $response = Http::withOptions([/*'debug' => true, */'proxy' => env('APP_HTTP_PROXY', ''), 'force_ip_resolve' => 'v' . env('APP_USE_IP_VERSION', 4)])->timeout(20)->retry(5, 500)->withUserAgent($userAgent)->withoutVerifying()->withHeaders($this->GeneratePostRequestHeaders())->post($apiUrl, $postData);
                 }
                 else
                 {
